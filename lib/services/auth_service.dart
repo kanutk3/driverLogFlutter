@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'device_service.dart';
+import '../config.dart';
 
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -48,7 +49,7 @@ class AuthService {
     if (kIsWeb) {
       redirectOrigin = Uri.base.origin;
     } else {
-      redirectOrigin = 'https://driverlog-flutter.kanut-k3.workers.dev';
+      redirectOrigin = AppConfig.appUrl;
     }
     await _supabase.auth.signInWithOAuth(
       OAuthProvider.google,

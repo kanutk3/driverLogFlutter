@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/jpg_download.dart';
+import '../config.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class TripReportScreen extends StatefulWidget {
@@ -449,9 +450,9 @@ class _ReportPage extends StatelessWidget {
               const Spacer(),
               const Divider(color: Color(0xFFCBD5E1)),
               Row(children: [
-                QrImageView(data: 'https://driverlog-flutter.kanut-k3.workers.dev', version: QrVersions.auto, size: 40),
+                QrImageView(data: AppConfig.appUrl, version: QrVersions.auto, size: 40),
                 const SizedBox(width: 6),
-                const Text('driverlog-flutter.kanut-k3.workers.dev', style: TextStyle(color: Color(0xFF64748B))),
+                Text(AppConfig.appUrl.replaceFirst('https://', ''), style: const TextStyle(color: Color(0xFF64748B))),
                 const Spacer(),
                 const Text('ขอบคุณสำหรับการใช้งาน', style: TextStyle(color: Color(0xFF64748B))),
               ],),
