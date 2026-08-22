@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'trip_form_screen.dart';
 import 'trip_report_screen.dart';
+import '../widgets/trip_hint_banner.dart';
 
 enum _TripView { cards, table }
 
@@ -313,7 +314,9 @@ class _TripHistoryScreenState extends State<TripHistoryScreen> {
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 16),
+                          const TripHintBanner(),
+                          const SizedBox(height: 16),
                           const Text(
                             'รายการเดินทาง',
                             style: TextStyle(fontSize: 19, fontWeight: FontWeight.w800),

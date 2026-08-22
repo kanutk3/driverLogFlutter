@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/home_screen.dart';
 import 'screens/driver_home_screen.dart';
+import 'screens/onboarding_screen.dart';
 import 'services/auth_service.dart';
 
 void main() async {
@@ -41,6 +42,24 @@ class AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<AuthGate> {
   String? _syncedUserId;
+  bool _showOnboarding = false;
+  bool _onboardingChecked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkOnboarding();
+  }
+
+  Future<void> _checkOnboarding() async {
+    final completed = await isOnboardingCompleted();
+    if (mounted) {
+      setState(() {
+        _showOnboarding = !completed;
+        _onboardingChecked = true;
+      });
+    }
+  }
 
   void _syncGoogleProfile(String userId) {
     if (_syncedUserId == userId) return;
@@ -68,6 +87,20 @@ class _AuthGateState extends State<AuthGate> {
         }
 
         _syncGoogleProfile(session.user.id);
+
+        if (!_onboardingChecked) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (_showOnboarding) {
+          return OnboardingScreen(
+            onComplete: () {
+              setState(() => _showOnboarding = false);
+            },
+          );
+        }
 
         return const DriverHomeScreen();
       },

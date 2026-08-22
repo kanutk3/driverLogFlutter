@@ -5,6 +5,7 @@ import 'trip_form_screen.dart';
 import 'trip_history_screen.dart';
 import 'trip_report_screen.dart';
 import 'settings_screen.dart';
+import 'help_sheet.dart';
 
 /// Main workspace shown to an authenticated driver.
 ///
@@ -290,6 +291,12 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           TripReportScreen(embedded: true),
           const SettingsScreen(embedded: true),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => showHelpSheet(context),
+        backgroundColor: const Color(0xFF2563EB),
+        tooltip: 'วิธีใช้งาน',
+        child: const Icon(Icons.help_outline, color: Colors.white),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
