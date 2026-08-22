@@ -6,6 +6,7 @@ import 'package:flutter/rendering.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../services/jpg_download.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class TripReportScreen extends StatefulWidget {
   const TripReportScreen({
@@ -447,13 +448,13 @@ class _ReportPage extends StatelessWidget {
               Align(alignment: Alignment.centerRight, child: Text('รวม ${trips.length} รายการ  •  ${totalDistance.toStringAsFixed(1)} กม.  •  ค่าตั๋ว ${totalTicket.toStringAsFixed(0)} บาท', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800))),
               const Spacer(),
               const Divider(color: Color(0xFFCBD5E1)),
-              Row(children: const [
-                Icon(Icons.directions_car_rounded, color: Color(0xFF2563EB), size: 16),
-                SizedBox(width: 5),
-                Text('driverLog  •  driverlog-flutter.kanut-k3.workers.dev', style: TextStyle(color: Color(0xFF64748B))),
-                Spacer(),
-                Text('ขอบคุณสำหรับการใช้งาน', style: TextStyle(color: Color(0xFF64748B))),
-              ]),
+              Row(children: [
+                QrImageView(data: 'https://driverlog-flutter.kanut-k3.workers.dev', version: QrVersions.auto, size: 40),
+                const SizedBox(width: 6),
+                const Text('driverlog-flutter.kanut-k3.workers.dev', style: TextStyle(color: Color(0xFF64748B))),
+                const Spacer(),
+                const Text('ขอบคุณสำหรับการใช้งาน', style: TextStyle(color: Color(0xFF64748B))),
+              ],),
               const SizedBox(height: 5),
               Align(alignment: Alignment.centerRight, child: Text('หน้า $page / $totalPages', style: const TextStyle(color: Color(0xFF64748B)))),
             ]),
