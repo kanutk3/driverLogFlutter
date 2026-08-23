@@ -86,14 +86,11 @@ class AuthService {
       return;
     }
 
-    final displayName = (existing['display_name'] as String? ?? '').trim();
-
-    // Login ทุกครั้ง: อัปเดตชื่อจาก Google
-    // แต่จะตั้ง display_name เฉพาะเมื่อยังไม่มีค่า
+    // Login ทุกครั้ง: อัปเดตชื่อจาก Google ทั้ง google_name และ display_name
     await _supabase.from('profiles').update({
       'email': user.email,
       'google_name': googleName,
-      if (displayName.isEmpty) 'display_name': googleName,
+      'display_name': googleName,
     }).eq('id', user.id);
   }
 }
