@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/jpg_download.dart';
 import '../config.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:intl/intl.dart';
 
 class TripReportScreen extends StatefulWidget {
   const TripReportScreen({
@@ -330,6 +331,8 @@ class _ReportPage extends StatelessWidget {
   final int totalPages;
   final String Function(DateTime) date;
   final String driverName;
+  static final NumberFormat _moneyFormat = NumberFormat('#,##0');
+
 
   String _time(String? value) {
     if (value == null) return '-';
@@ -365,6 +368,7 @@ class _ReportPage extends StatelessWidget {
     final totalTicket = trips.fold<double>(0, (sum, trip) => sum + _number(trip['ticket_price']));
     final vehicle = _vehicle;
     final plate = vehicle?['vehicle_plate'] as String? ?? '-';
+
     final vehicleType = [vehicle?['brand'], vehicle?['model']]
         .whereType<String>()
         .where((value) => value.isNotEmpty)
@@ -417,11 +421,37 @@ class _ReportPage extends StatelessWidget {
               const SizedBox(height: 12),
               Table(
                 border: TableBorder.all(color: const Color(0xFF64748B)),
-                columnWidths: const {0: FixedColumnWidth(74), 1: FixedColumnWidth(38), 2: FixedColumnWidth(88), 3: FixedColumnWidth(60), 4: FlexColumnWidth(3), 5: FixedColumnWidth(72), 6: FixedColumnWidth(52), 7: FixedColumnWidth(72), 8: FixedColumnWidth(52), 9: FixedColumnWidth(62), 10: FixedColumnWidth(70)},
+                columnWidths: const {
+                  0: FixedColumnWidth(74), // DATE
+                  1: FixedColumnWidth(38), // C/T
+                  2: FixedColumnWidth(82), // เลขที่ตั๋ว
+                  3: FixedColumnWidth(68), // ราคาตั๋ว: คอลัมน์ใหม่
+                  4: FixedColumnWidth(55), // เริ่มต้น
+                  5: FlexColumnWidth(3),   // ปลายทาง
+                  6: FixedColumnWidth(68), // เลขกิโลไป
+                  7: FixedColumnWidth(50), // เวลาออก
+                  8: FixedColumnWidth(68), // เลขกิโลกลับ
+                  9: FixedColumnWidth(50), // เวลากลับ
+                  10: FixedColumnWidth(58), // ทางด่วน
+                  11: FixedColumnWidth(66), // หมายเหตุ
+                },
                 children: [
                   const TableRow(
                     decoration: BoxDecoration(color: Color(0xFFF1F5F9)),
-                    children: [_Header('DATE'), _Header('C/T'), _Header('เลขที่ตั๋ว'), _Header('เริ่มต้น'), _Header('ปลายทาง'), _Header('เลขกิโลไป'), _Header('เวลา'), _Header('เลขกิโลกลับ'), _Header('เวลา'), _Header('ทางด่วน'), _Header('REMARK')],
+                    children: [
+                        _Header('DATE'), 
+                        _Header('C/T'), 
+                        _Header('เลขที่ตั๋ว'), 
+                        _Header('ราคาตั๋ว'), 
+                        _Header('เริ่มต้น'), 
+                        _Header('ปลายทาง'), 
+                        _Header('เลขกิโลไป'), 
+                        _Header('เวลา'), 
+                        _Header('เลขกิโลกลับ'), 
+                        _Header('เวลา'),
+                        _Header('ทางด่วน'), 
+                        _Header('REMARK')
+                       ],
                   ),
                   ...List.generate(trips.length, (index) {
                     final trip = trips[index];
@@ -432,6 +462,14 @@ class _ReportPage extends StatelessWidget {
                         _Cell(isNewDay ? date(DateTime.parse(trip['start_time'] as String).toLocal()) : ''),
                         _Cell(_tripSequence(trip).toString(), centered: true),
                         _Cell(trip['ticket_number'] as String? ?? '-'),
+                        _Cell(
+                          trip['ticket_price'] == null
+                              ? '-'
+                              : _moneyFormat.format(
+                                  _number(trip['ticket_price']),
+                                ),
+                          right: true,
+                        ),
                         const _Cell('AP', centered: true),
                         _Cell(trip['destination'] as String? ?? '-'),
                         _Cell(trip['start_odometer']?.toString() ?? '-', right: true),
@@ -446,16 +484,60 @@ class _ReportPage extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 14),
-              Align(alignment: Alignment.centerRight, child: Text('รวม ${trips.length} รายการ  •  ${totalDistance.toStringAsFixed(1)} กม.  •  ค่าตั๋ว ${totalTicket.toStringAsFixed(0)} บาท', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800))),
+              Align(alignment: Alignment.centerRight, child: Text('รวม ${trips.length} รายการ  •  ${totalDistance.toStringAsFixed(1)} กม.  •  ค่าตั๋ว ${_moneyFormat.format(totalTicket)} บาท', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800))),
               const Spacer(),
               const Divider(color: Color(0xFFCBD5E1)),
-              Row(children: [
-                QrImageView(data: AppConfig.appUrl, version: QrVersions.auto, size: 40),
-                const SizedBox(width: 6),
-                Text(AppConfig.appUrl.replaceFirst('https://', ''), style: const TextStyle(color: Color(0xFF64748B))),
-                const Spacer(),
-                const Text('รายงานนี้สร้างโดย driverLog', style: TextStyle(color: Color(0xFF64748B))),
-              ],),
+
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 72,
+                    height: 72,
+                    padding: const EdgeInsets.all(5),
+                    color: Colors.white,
+                    child: QrImageView(
+                      data: AppConfig.websiteShortUrl,
+                      version: QrVersions.auto,
+                      errorCorrectionLevel: QrErrorCorrectLevel.M,
+                      backgroundColor: Colors.white,
+                      padding: EdgeInsets.zero,
+                      gapless: true,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'สแกนเพื่อเข้าสู่เว็บไซต์ driverLog',
+                        style: TextStyle(
+                          color: Color(0xFF334155),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        AppConfig.websiteShortUrl.replaceFirst('https://', ''),
+                        style: const TextStyle(
+                          color: Color(0xFF64748B),
+                          fontSize: 9,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  const Text(
+                    'รายงานนี้สร้างโดย driverLog',
+                    style: TextStyle(
+                      color: Color(0xFF64748B),
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
               if (totalPages > 1) ...[
                 const SizedBox(height: 5),
                 Align(alignment: Alignment.centerRight, child: Text('หน้า $page / $totalPages', style: const TextStyle(color: Color(0xFF64748B)))),

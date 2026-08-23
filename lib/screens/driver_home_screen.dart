@@ -321,7 +321,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           NavigationDestination(
             icon: Icon(Icons.ios_share_outlined),
             selectedIcon: Icon(Icons.ios_share_rounded),
-            label: 'Export',
+            label: 'รายงาน',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),
@@ -449,7 +449,7 @@ class _HomeTabState extends State<_HomeTab> {
             children: [
               // --- Greeting ---
               Text(
-                'สวัสดี-, ${widget.displayName}',
+                'สวัสดี, ${widget.displayName}',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       color: const Color(0xFF0F172A),
                       fontWeight: FontWeight.w800,
