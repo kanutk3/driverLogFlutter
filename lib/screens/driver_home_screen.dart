@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'trip_form_screen.dart';
 import 'trip_history_screen.dart';
+import 'trip_report_screen.dart';
 import 'send_feedback_screen.dart';
 import 'help_sheet.dart';
 
@@ -24,6 +25,9 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
 
   // --- Profile helpers ---------------------------------------------------
 
+  // ValueNotifier เพื่อแจ้ง TripReportScreen เมื่อเปลี่ยนชื่อ
+  final ValueNotifier<String?> displayNameNotifier = ValueNotifier<String?>(null);
+
   String? _profileName;
 
   User? get _user => _supabase.auth.currentUser;
@@ -32,9 +36,17 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     if (_profileName != null && _profileName!.trim().isNotEmpty) {
       return _profileName!;
     }
+    return _displayNameFromDb ?? _googleName;
+  }
+
+  // ชื่อจาก Google (userMetadata)
+  String get _googleName {
     final metadata = _user?.userMetadata;
     return (metadata?['full_name'] ?? metadata?['name'] ?? 'คนขับ').toString();
   }
+
+  // ชื่อที่แสดงในรายงาน (จาก database)
+  String? get _displayNameFromDb => _profileName;
 
   String? get _avatarUrl {
     final metadata = _user?.userMetadata;
@@ -62,6 +74,76 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       }
     } catch (_) {
       // Google profile name remains a safe fallback.
+    }
+  }
+
+  Future<void> _editDisplayName() async {
+    final controller = TextEditingController(text: _displayName);
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('ชื่อที่แสดงในรายงาน'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLength: 80,
+          decoration: const InputDecoration(
+            labelText: 'ชื่อผู้ขับ',
+            hintText: 'เช่น คุณจิ๋ว ตั้งมั่น',
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('ยกเลิก')),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: const Text('บันทึก'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (name == null || name.isEmpty || name == _displayName || _user == null) {
+      return;
+    }
+
+    try {
+      final List<dynamic> response = await _supabase
+          .from('profiles')
+          .update({'display_name': name})
+          .eq('id', _user!.id)
+          .select();
+
+      if (!mounted) return;
+
+      if (response.isNotEmpty) {
+        setState(() => _profileName = name);
+        displayNameNotifier.value = name;  // แจ้ง TripReportScreen ให้ regenerate
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('บันทึกชื่อสำหรับรายงานแล้ว')),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('ไม่สามารถแก้ไขข้อมูลได้ (ไม่มีสิทธิ์)')),
+          );
+        }
+      }
+    } on PostgrestException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('เกิดข้อผิดพลาด: ${error.message}')),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('ไม่สามารถบันทึกชื่อได้')),
+        );
+      }
     }
   }
 
@@ -145,7 +227,9 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               tooltip: '',
               offset: const Offset(0, 48),
               onSelected: (value) async {
-                if (value == 'signOut') {
+                if (value == 'editName') {
+                  await _editDisplayName();
+                } else if (value == 'signOut') {
                   await _supabase.auth.signOut();
                 }
               },
@@ -174,7 +258,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                _displayName,
+                                _googleName,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
@@ -196,6 +280,19 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem<String>(
+                  value: 'editName',
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.edit_outlined),
+                    title: const Text('แก้ไขชื่อในรายงาน'),
+                    subtitle: Text(
+                      _displayName,
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                     ),
                   ),
                 ),
@@ -238,6 +335,10 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             },
           ),
           const TripHistoryScreen(embedded: true),
+          TripReportScreen(
+            embedded: true,
+            displayNameNotifier: displayNameNotifier,
+          ),
           const SendFeedbackScreen(embedded: true),
         ],
       ),
@@ -260,6 +361,11 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             icon: Icon(Icons.history_outlined),
             selectedIcon: Icon(Icons.history_rounded),
             label: 'ล่าสุด',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.ios_share_outlined),
+            selectedIcon: Icon(Icons.ios_share_rounded),
+            label: 'รายงาน',
           ),
           NavigationDestination(
             icon: Icon(Icons.send_outlined),

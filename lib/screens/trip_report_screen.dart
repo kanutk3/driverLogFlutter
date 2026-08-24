@@ -18,6 +18,7 @@ class TripReportScreen extends StatefulWidget {
     this.initialStatus = 'all',
     this.initialVehicleId,
     this.embedded = false,
+    this.displayNameNotifier,
   });
 
   /// When true the screen renders without its own [AppBar] / bottom bar so
@@ -28,6 +29,9 @@ class TripReportScreen extends StatefulWidget {
   final String initialSearch;
   final String initialStatus;
   final String? initialVehicleId;
+
+  /// Notifier เพื่อรับแจ้งเมื่อเปลี่ยนชื่อ → regenerate รายงาน
+  final ValueNotifier<String?>? displayNameNotifier;
 
   @override
   State<TripReportScreen> createState() => _TripReportScreenState();
@@ -57,13 +61,33 @@ class _TripReportScreenState extends State<TripReportScreen> {
     _status = widget.initialStatus;
     _vehicleId = widget.initialVehicleId;
     _loadTrips();
+
+    // ฟังการเปลี่ยนชื่อ → regenerate รายงาน
+    widget.displayNameNotifier?.addListener(_onDisplayNameChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.displayNameNotifier?.removeListener(_onDisplayNameChanged);
+    super.dispose();
+  }
+
+  void _onDisplayNameChanged() {
+    // เมื่อเปลี่ยนชื่อ → โหลดชื่อใหม่แล้ว regenerate รายงาน
+    _loadDriverName().then((_) {
+      if (mounted) setState(() {});  // Rebuild รายงาน
+    });
   }
 
   Future<void> _loadDriverName() async {
     final user = _supabase.auth.currentUser;
     if (user == null) return;
+
+    // ใช้ชื่อจาก Google (userMetadata) เป็น fallback
     final fallback = (user.userMetadata?['full_name'] ?? user.userMetadata?['name'] ?? user.email ?? 'คนขับ').toString();
+
     try {
+      // อ่านจาก profiles.display_name (ชื่อที่ผู้ใช้แก้ไขเอง)
       final profile = await _supabase
           .from('profiles')
           .select('display_name')
