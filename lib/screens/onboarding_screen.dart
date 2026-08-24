@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Onboarding tour shown to new drivers on first app launch.
 ///
-/// Stores a flag in secure storage so it only shows once.
+/// Stores a flag in shared preferences so it only shows once.
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key, this.onComplete});
 
@@ -16,8 +16,6 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final _pageController = PageController();
   int _currentPage = 0;
-
-  final _storage = const FlutterSecureStorage();
 
   static const _pages = [
     _OnboardingPage(
@@ -47,7 +45,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   ];
 
   Future<void> _complete() async {
-    await _storage.write(key: 'onboarding_completed', value: 'true');
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('onboarding_completed', true);
     widget.onComplete?.call();
   }
 
@@ -195,7 +194,6 @@ class _OnboardingPage extends StatelessWidget {
 
 /// Helper to check if onboarding has been completed.
 Future<bool> isOnboardingCompleted() async {
-  const storage = FlutterSecureStorage();
-  final value = await storage.read(key: 'onboarding_completed');
-  return value == 'true';
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getBool('onboarding_completed') ?? false;
 }

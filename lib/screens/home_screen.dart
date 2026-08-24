@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'login_dialog.dart';
-import '../services/biometric_service.dart';
-import '../services/auth_service.dart';
-import '../services/device_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,11 +11,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _supabase = Supabase.instance.client;
-  final _biometricService = BiometricService();
-  final _authService = AuthService();
 
   User? _currentUser;
-  bool _biometricAvailable = false;
 
   String get displayName {
     return _currentUser?.userMetadata?['full_name'] ??
@@ -35,7 +29,6 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _currentUser = _supabase.auth.currentUser;
-    _checkBiometric();
 
     _supabase.auth.onAuthStateChange.listen((data) {
       if (mounted) {
@@ -44,50 +37,6 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       }
     });
-  }
-
-  Future<void> _checkBiometric() async {
-    try {
-      final available = await _biometricService.isBiometricAvailable();
-      final registered = await _biometricService.hasRegisteredBiometric();
-      if (mounted) {
-        setState(() => _biometricAvailable = available && registered);
-      }
-    } catch (_) {}
-  }
-
-  Future<void> _loginWithBiometric() async {
-    try {
-      final success = await _biometricService.authenticate();
-      if (!success) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('การยืนยันตัวตนล้มเหลว')),
-          );
-        }
-        return;
-      }
-
-      // Use stored device credentials to login
-      final deviceInfo = await DeviceService.getDeviceInfo();
-      final email = 'dev_${deviceInfo.id.substring(0, 8)}@driverlog.com';
-      await _authService.loginWithDevice(email: email);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('เข้าสู่ระบบสำเร็จ ✅'),
-            backgroundColor: Color(0xFF047857),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('เข้าสู่ระบบล้มเหลว: $e')),
-        );
-      }
-    }
   }
 
   @override
@@ -258,21 +207,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ),
-                        if (_biometricAvailable) ...[
-                          const SizedBox(height: 12),
-                          OutlinedButton.icon(
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            ),
-                            onPressed: _loginWithBiometric,
-                            icon: const Icon(Icons.fingerprint_rounded, size: 22),
-                            label: const Text(
-                              'ล็อกอินด้วยลายนิ้วมือ',
-                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ],
                       ],
                     ],
                   ),

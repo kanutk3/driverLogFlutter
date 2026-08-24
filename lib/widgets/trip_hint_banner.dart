@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// A dismissable hint banner shown to first-time users.
 /// Explains that trips can be edited by tapping on them.
@@ -12,7 +12,6 @@ class TripHintBanner extends StatefulWidget {
 
 class _TripHintBannerState extends State<TripHintBanner> {
   bool _visible = true;
-  final _storage = const FlutterSecureStorage();
 
   @override
   void initState() {
@@ -21,14 +20,16 @@ class _TripHintBannerState extends State<TripHintBanner> {
   }
 
   Future<void> _checkHint() async {
-    final dismissed = await _storage.read(key: 'trip_hint_dismissed');
-    if (dismissed == 'true' && mounted) {
+    final prefs = await SharedPreferences.getInstance();
+    final dismissed = prefs.getBool('trip_hint_dismissed') ?? false;
+    if (dismissed && mounted) {
       setState(() => _visible = false);
     }
   }
 
   Future<void> _dismiss() async {
-    await _storage.write(key: 'trip_hint_dismissed', value: 'true');
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('trip_hint_dismissed', true);
     if (mounted) setState(() => _visible = false);
   }
 

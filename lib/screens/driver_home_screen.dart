@@ -3,8 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'trip_form_screen.dart';
 import 'trip_history_screen.dart';
-import 'trip_report_screen.dart';
-import 'settings_screen.dart';
+import 'send_feedback_screen.dart';
 import 'help_sheet.dart';
 
 /// Main workspace shown to an authenticated driver.
@@ -66,73 +65,36 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     }
   }
 
-  Future<void> _editDisplayName() async {
-    final controller = TextEditingController(text: _displayName);
-    final name = await showDialog<String>(
+  void _showSupportDialog(BuildContext context) {
+    showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('ชื่อที่แสดงในรายงาน'),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          maxLength: 80,
-          decoration: const InputDecoration(
-            labelText: 'ชื่อผู้ขับ',
-            hintText: 'เช่น คุณจิ๋ว ตั้งมั่น',
-          ),
+        title: const Row(
+          children: [
+            Icon(Icons.favorite, color: Color(0xFFE11D48), size: 24),
+            SizedBox(width: 8),
+            Text('สนับสนุนโครงการ'),
+          ],
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('หากแอปนี้มีประโยชน์ สามารถสนับสนุนผู้พัฒนาได้ครับ'),
+            SizedBox(height: 12),
+            Text('💬 ติดต่อ: kanut.k3@gmail.com', style: TextStyle(fontSize: 13)),
+            SizedBox(height: 8),
+            Text('🙏 ขอบคุณที่ใช้งานแอป driverLog', style: TextStyle(fontSize: 13)),
+          ],
         ),
         actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('ยกเลิก')),
           FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('บันทึก'),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('ปิด'),
           ),
         ],
       ),
     );
-    controller.dispose();
-    if (name == null || name.isEmpty || name == _displayName || _user == null) {
-      return;
-    }
-
-    try {
-      final List<dynamic> response = await _supabase
-          .from('profiles')
-          .update({'display_name': name})
-          .eq('id', _user!.id)
-          .select();
-
-      if (!mounted) return;
-
-      if (response.isNotEmpty) {
-        setState(() => _profileName = name);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('บันทึกชื่อสำหรับรายงานแล้ว')),
-          );
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('ไม่สามารถแก้ไขข้อมูลได้ (ไม่มีสิทธิ์)')),
-          );
-        }
-      }
-    } on PostgrestException catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('เกิดข้อผิดพลาด: ${error.message}')),
-        );
-      }
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ไม่สามารถบันทึกชื่อได้')),
-        );
-      }
-    }
   }
 
   // --- Build -------------------------------------------------------------
@@ -164,15 +126,26 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           ],
         ),
         actions: [
+          // Help button
+          IconButton(
+            icon: const Icon(Icons.help_outline, color: Color(0xFF64748B)),
+            tooltip: 'วิธีใช้งาน',
+            onPressed: () => showHelpSheet(context),
+          ),
+          // Support button
+          IconButton(
+            icon: const Icon(Icons.favorite_border, color: Color(0xFFE11D48)),
+            tooltip: 'สนับสนุนโครงการ',
+            onPressed: () => _showSupportDialog(context),
+          ),
+          // Avatar popup menu
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: PopupMenuButton<String>(
               tooltip: '',
               offset: const Offset(0, 48),
               onSelected: (value) async {
-                if (value == 'editName') {
-                  await _editDisplayName();
-                } else if (value == 'signOut') {
+                if (value == 'signOut') {
                   await _supabase.auth.signOut();
                 }
               },
@@ -228,15 +201,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 ),
                 const PopupMenuDivider(),
                 const PopupMenuItem<String>(
-                  value: 'editName',
-                  child: ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.edit_outlined),
-                    title: Text('แก้ไขชื่อในรายงาน'),
-                  ),
-                ),
-                const PopupMenuDivider(),
-                const PopupMenuItem<String>(
                   value: 'signOut',
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
@@ -248,35 +212,21 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   ),
                 ),
               ],
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    _displayName,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Color(0xFF1E293B),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundColor: const Color(0xFFEFF6FF),
-                    backgroundImage:
-                        _avatarUrl == null ? null : NetworkImage(_avatarUrl!),
-                    child: _avatarUrl == null
-                        ? const Icon(Icons.person,
-                            color: Color(0xFF2563EB), size: 20)
-                        : null,
-                  ),
-                ],
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: const Color(0xFFEFF6FF),
+                backgroundImage:
+                    _avatarUrl == null ? null : NetworkImage(_avatarUrl!),
+                child: _avatarUrl == null
+                    ? const Icon(Icons.person,
+                        color: Color(0xFF2563EB), size: 20)
+                    : null,
               ),
             ),
           ),
         ],
-      ),        body: IndexedStack(
+      ),
+      body: IndexedStack(
         index: _currentIndex,
         children: [
           _HomeTab(
@@ -288,15 +238,8 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             },
           ),
           const TripHistoryScreen(embedded: true),
-          TripReportScreen(embedded: true),
-          const SettingsScreen(embedded: true),
+          const SendFeedbackScreen(embedded: true),
         ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => showHelpSheet(context),
-        backgroundColor: const Color(0xFF2563EB),
-        tooltip: 'วิธีใช้งาน',
-        child: const Icon(Icons.help_outline, color: Colors.white),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
@@ -319,14 +262,9 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             label: 'ล่าสุด',
           ),
           NavigationDestination(
-            icon: Icon(Icons.ios_share_outlined),
-            selectedIcon: Icon(Icons.ios_share_rounded),
-            label: 'รายงาน',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings_rounded),
-            label: 'ตั้งค่า',
+            icon: Icon(Icons.send_outlined),
+            selectedIcon: Icon(Icons.send_rounded),
+            label: 'ส่งข้อมูล',
           ),
         ],
       ),
