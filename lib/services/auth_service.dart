@@ -6,6 +6,22 @@ import '../config.dart';
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
+  /// ดึง role ของ user ปัจจุบันจาก profiles table
+  Future<String> getUserRole() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return 'driver';
+    try {
+      final profile = await _supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+      return (profile?['role'] as String?) ?? 'driver';
+    } catch (_) {
+      return 'driver';
+    }
+  }
+
   Future<void> registerPrimaryDevice({
     required String displayName,
     String? email,

@@ -45,7 +45,7 @@ class _SendFeedbackScreenState extends State<SendFeedbackScreen> {
         'type': _feedbackType,
         'message': message,
         'contact': _contactController.text.trim(),
-        'app_version': '1.0.0',
+        'app_version': AppConfig.appVersion,
       });
 
       if (mounted) {

@@ -1,0 +1,288 @@
+import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:intl/intl.dart';
+
+/// Screen for developer to view all feedback from users.
+class FeedbackListScreen extends StatefulWidget {
+  const FeedbackListScreen({super.key});
+
+  @override
+  State<FeedbackListScreen> createState() => _FeedbackListScreenState();
+}
+
+class _FeedbackListScreenState extends State<FeedbackListScreen> {
+  final _supabase = Supabase.instance.client;
+  List<Map<String, dynamic>> _feedbacks = [];
+  bool _isLoading = true;
+  String _filterType = 'all';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFeedbacks();
+  }
+
+  Future<void> _loadFeedbacks() async {
+    setState(() => _isLoading = true);
+
+    try {
+      var query = _supabase
+          .from('feedback')
+          .select('*, profiles(display_name, email)');
+
+      if (_filterType != 'all') {
+        query = query.eq('type', _filterType);
+      }
+
+      final data = await query.order('created_at', ascending: false);
+
+      if (mounted) {
+        setState(() {
+          _feedbacks = List<Map<String, dynamic>>.from(data);
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  String _typeLabel(String type) {
+    switch (type) {
+      case 'bug':
+        return '🐛 บั๊ก';
+      case 'feature':
+        return '💡 ฟีเจอร์';
+      case 'improvement':
+        return '⚙️ ปรับปรุง';
+      default:
+        return '📝 อื่น ๆ';
+    }
+  }
+
+  Color _typeColor(String type) {
+    switch (type) {
+      case 'bug':
+        return const Color(0xFFDC2626);
+      case 'feature':
+        return const Color(0xFF2563EB);
+      case 'improvement':
+        return const Color(0xFF047857);
+      default:
+        return const Color(0xFF64748B);
+    }
+  }
+
+  String _formatDate(String iso) {
+    try {
+      final dt = DateTime.parse(iso).toLocal();
+      return DateFormat('dd/MM/yyyy HH:mm').format(dt);
+    } catch (_) {
+      return iso;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Filter chips
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+          ),
+          child: Row(
+            children: [
+              const Text('กรอง: ', style: TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(width: 8),
+              _buildFilterChip('all', 'ทั้งหมด'),
+              _buildFilterChip('bug', '🐛 บั๊ก'),
+              _buildFilterChip('feature', '💡 ฟีเจอร์'),
+              _buildFilterChip('improvement', '⚙️ ปรับปรุง'),
+              _buildFilterChip('other', '📝 อื่น ๆ'),
+            ],
+          ),
+        ),
+
+        // Feedback list
+        Expanded(
+          child: _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _feedbacks.isEmpty
+                  ? const Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.feedback_outlined, size: 48, color: Color(0xFF94A3B8)),
+                          SizedBox(height: 12),
+                          Text('ยังไม่มี feedback', style: TextStyle(fontWeight: FontWeight.w700)),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _loadFeedbacks,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: _feedbacks.length,
+                        itemBuilder: (context, index) {
+                          final fb = _feedbacks[index];
+                          final profile = fb['profiles'] as Map<String, dynamic>?;
+                          return _FeedbackCard(
+                            feedback: fb,
+                            profile: profile,
+                            typeLabel: _typeLabel(fb['type'] ?? 'other'),
+                            typeColor: _typeColor(fb['type'] ?? 'other'),
+                            formattedDate: _formatDate(fb['created_at'] ?? ''),
+                          );
+                        },
+                      ),
+                    ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilterChip(String value, String label) {
+    final isSelected = _filterType == value;
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: ChoiceChip(
+        label: Text(label, style: const TextStyle(fontSize: 12)),
+        selected: isSelected,
+        onSelected: (selected) {
+          setState(() => _filterType = value);
+          _loadFeedbacks();
+        },
+        selectedColor: const Color(0xFFDBEAFE),
+        visualDensity: VisualDensity.compact,
+      ),
+    );
+  }
+}
+
+class _FeedbackCard extends StatelessWidget {
+  const _FeedbackCard({
+    required this.feedback,
+    required this.profile,
+    required this.typeLabel,
+    required this.typeColor,
+    required this.formattedDate,
+  });
+
+  final Map<String, dynamic> feedback;
+  final Map<String, dynamic>? profile;
+  final String typeLabel;
+  final Color typeColor;
+  final String formattedDate;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Color(0xFFE2E8F0)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header: type + date
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: typeColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    typeLabel,
+                    style: TextStyle(
+                      color: typeColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                if (feedback['app_version'] != null)
+                  Text(
+                    'v${feedback['app_version']}',
+                    style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                  ),
+                const Spacer(),
+                Text(
+                  formattedDate,
+                  style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+
+            // User info
+            if (profile != null) ...[
+              Row(
+                children: [
+                  const Icon(Icons.person_outline, size: 14, color: Color(0xFF64748B)),
+                  const SizedBox(width: 4),
+                  Text(
+                    profile?['display_name'] ?? 'ไม่ระบุชื่อ',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF475569),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    profile?['email'] ?? '',
+                    style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
+
+            // Message
+            Text(
+              feedback['message'] ?? '-',
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF1E293B),
+                height: 1.5,
+              ),
+            ),
+
+            // Contact
+            if (feedback['contact'] != null &&
+                (feedback['contact'] as String).isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.contact_phone_outlined, size: 14, color: Color(0xFF64748B)),
+                    const SizedBox(width: 6),
+                    Text(
+                      feedback['contact'],
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF475569)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}

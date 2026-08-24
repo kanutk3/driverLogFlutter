@@ -8,4 +8,8 @@ class AppConfig {
 
   /// Short display label
   static const String appLabel = 'driverLog';
+
+  /// App version — อัปเดตตรงนี้ที่เดียว (ตรงกับ pubspec.yaml)
+  static const String appVersion = '1.0.0';
+  static const String buildNumber = '1';
 }
