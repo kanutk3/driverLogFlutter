@@ -228,37 +228,13 @@ class CustomAppLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        color: const Color(0xFF2563EB),
-        borderRadius: BorderRadius.circular(size * 0.22),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF2563EB).withOpacity(0.3),
-            blurRadius: size * 0.2,
-            offset: Offset(0, size * 0.08),
-          ),
-        ],
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Icon(
-            Icons.directions_car,
-            size: size * 0.6,
-            color: Colors.white,
-          ),
-          Positioned(
-            bottom: size * 0.15,
-            child: Icon(
-              Icons.assignment_turned_in,
-              size: size * 0.3,
-              color: const Color(0xFF60A5FA),
-            ),
-          ),
-        ],
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(size * 0.22),
+      child: Image.asset(
+        'assets/images/logo.png',
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
       ),
     );
   }

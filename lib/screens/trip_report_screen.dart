@@ -413,10 +413,18 @@ class _ReportPage extends StatelessWidget {
                 child: Stack(children: [
                   Align(
                     alignment: Alignment.topLeft,
-                    child: Row(mainAxisSize: MainAxisSize.min, children: const [
-                      Icon(Icons.directions_car_rounded, color: Color(0xFF2563EB), size: 32),
-                      SizedBox(width: 8),
-                      Text('driverLog', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+                    child: Row(mainAxisSize: MainAxisSize.min, children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          width: 32,
+                          height: 32,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text('driverLog', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
                     ]),
                   ),
                   Align(
