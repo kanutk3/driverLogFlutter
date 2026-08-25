@@ -22,6 +22,18 @@ class AuthService {
     }
   }
 
+  /// ตรวจสอบว่าเป็น developer หรือไม่
+  Future<bool> isDeveloper() async {
+    final role = await getUserRole();
+    return role == 'developer' || role == 'admin';
+  }
+
+  /// ตรวจสอบว่าเป็น admin หรือไม่
+  Future<bool> isAdmin() async {
+    final role = await getUserRole();
+    return role == 'admin';
+  }
+
   Future<void> registerPrimaryDevice({
     required String displayName,
     String? email,
@@ -102,11 +114,10 @@ class AuthService {
       return;
     }
 
-    // Login ทุกครั้ง: อัปเดตชื่อจาก Google ทั้ง google_name และ display_name
+    // Login ทุกครั้ง: อัปเดตเฉพาะ google_name (display_name เป็นหน้าที่ของผู้ใช้)
     await _supabase.from('profiles').update({
       'email': user.email,
       'google_name': googleName,
-      'display_name': googleName,
     }).eq('id', user.id);
   }
 }

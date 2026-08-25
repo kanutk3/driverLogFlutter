@@ -73,10 +73,11 @@ class _TripReportScreenState extends State<TripReportScreen> {
   }
 
   void _onDisplayNameChanged() {
-    // เมื่อเปลี่ยนชื่อ → โหลดชื่อใหม่แล้ว regenerate รายงาน
-    _loadDriverName().then((_) {
-      if (mounted) setState(() {});  // Rebuild รายงาน
-    });
+    // เมื่อเปลี่ยนชื่อ → ใช้ค่าจาก notifier ตรง ๆ (ไม่ต้องอ่าน DB)
+    final newName = widget.displayNameNotifier?.value;
+    if (newName != null && newName.trim().isNotEmpty) {
+      setState(() => _driverName = newName);
+    }
   }
 
   Future<void> _loadDriverName() async {
@@ -95,7 +96,8 @@ class _TripReportScreenState extends State<TripReportScreen> {
           .maybeSingle();
       final name = profile?['display_name'] as String?;
       if (mounted) setState(() => _driverName = (name == null || name.trim().isEmpty) ? fallback : name);
-    } catch (_) {
+    } catch (e) {
+      // Fallback ไปชื่อ Google เมื่อ DB อ่านไม่ได้
       if (mounted) setState(() => _driverName = fallback);
     }
   }

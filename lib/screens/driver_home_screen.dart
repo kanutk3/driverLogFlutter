@@ -208,17 +208,48 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           ],
         ),
         actions: [
-          // Help button
-          IconButton(
-            icon: const Icon(Icons.help_outline, color: Color(0xFF64748B)),
-            tooltip: 'วิธีใช้งาน',
-            onPressed: () => showHelpSheet(context),
-          ),
-          // Support button
-          IconButton(
-            icon: const Icon(Icons.favorite_border, color: Color(0xFFE11D48)),
-            tooltip: 'สนับสนุนโครงการ',
-            onPressed: () => _showSupportDialog(context),
+          // More menu (วิธีใช้งาน + สนับสนุน + ส่งข้อมูล)
+          PopupMenuButton<String>(
+            tooltip: 'เมนูเพิ่มเติม',
+            icon: const Icon(Icons.more_vert, color: Color(0xFF64748B)),
+            onSelected: (value) {
+              if (value == 'help') {
+                showHelpSheet(context);
+              } else if (value == 'support') {
+                _showSupportDialog(context);
+              } else if (value == 'feedback') {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const SendFeedbackScreen()),
+                );
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem<String>(
+                value: 'help',
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.help_outline),
+                  title: Text('วิธีใช้งาน'),
+                ),
+              ),
+              const PopupMenuItem<String>(
+                value: 'support',
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.favorite_border, color: Color(0xFFE11D48)),
+                  title: Text('สนับสนุนโครงการ'),
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem<String>(
+                value: 'feedback',
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.send_outlined),
+                  title: Text('ส่งข้อมูล'),
+                ),
+              ),
+            ],
           ),
           // Avatar popup menu
           Padding(
@@ -339,7 +370,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             embedded: true,
             displayNameNotifier: displayNameNotifier,
           ),
-          const SendFeedbackScreen(embedded: true),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -366,11 +396,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             icon: Icon(Icons.ios_share_outlined),
             selectedIcon: Icon(Icons.ios_share_rounded),
             label: 'รายงาน',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.send_outlined),
-            selectedIcon: Icon(Icons.send_rounded),
-            label: 'ส่งข้อมูล',
           ),
         ],
       ),

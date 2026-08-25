@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/home_screen.dart';
 import 'screens/driver_home_screen.dart';
 import 'screens/developer_home_screen.dart';
+import 'screens/admin_home_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'services/auth_service.dart';
 
@@ -110,6 +111,9 @@ class _AuthGateState extends State<AuthGate> {
         }
 
         // เช็ค role แล้วแสดงหน้าที่ถูกต้อง
+        if (_userRole == 'admin') {
+          return const AdminHomeScreen();
+        }
         if (_userRole == 'developer') {
           return const DeveloperHomeScreen();
         }
