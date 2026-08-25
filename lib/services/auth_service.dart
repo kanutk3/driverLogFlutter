@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'device_service.dart';
 import '../config.dart';
 
 class AuthService {
@@ -32,39 +31,6 @@ class AuthService {
   Future<bool> isAdmin() async {
     final role = await getUserRole();
     return role == 'admin';
-  }
-
-  Future<void> registerPrimaryDevice({
-    required String displayName,
-    String? email,
-  }) async {
-    final deviceInfo = await DeviceService.getDeviceInfo();
-
-    final finalEmail = (email != null && email.isNotEmpty)
-        ? email
-        : 'dev_${deviceInfo.id.substring(0, 8)}@driverlog.app.com';
-
-    final password = 'pwd_${deviceInfo.id}';
-
-    await _supabase.auth.signUp(
-      email: finalEmail,
-      password: password,
-      data: {
-        'display_name': displayName,
-        'current_device_id': deviceInfo.id,
-        'device_name': deviceInfo.name,
-      },
-    );
-  }
-
-  Future<void> loginWithDevice({required String email}) async {
-    final deviceInfo = await DeviceService.getDeviceInfo();
-    final password = 'pwd_${deviceInfo.id}';
-
-    await _supabase.auth.signInWithPassword(
-      email: email,
-      password: password,
-    );
   }
 
   Future<void> signOut() async {
