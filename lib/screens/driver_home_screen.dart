@@ -208,63 +208,31 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           ],
         ),
         actions: [
-          // More menu (วิธีใช้งาน + สนับสนุน + ส่งข้อมูล)
-          PopupMenuButton<String>(
-            tooltip: 'เมนูเพิ่มเติม',
-            icon: const Icon(Icons.more_vert, color: Color(0xFF64748B)),
-            onSelected: (value) {
-              if (value == 'help') {
-                showHelpSheet(context);
-              } else if (value == 'support') {
-                _showSupportDialog(context);
-              } else if (value == 'feedback') {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const SendFeedbackScreen()),
-                );
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem<String>(
-                value: 'help',
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.help_outline),
-                  title: Text('วิธีใช้งาน'),
-                ),
-              ),
-              const PopupMenuItem<String>(
-                value: 'support',
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.favorite_border, color: Color(0xFFE11D48)),
-                  title: Text('สนับสนุนโครงการ'),
-                ),
-              ),
-              const PopupMenuDivider(),
-              const PopupMenuItem<String>(
-                value: 'feedback',
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(Icons.send_outlined),
-                  title: Text('ส่งข้อมูล'),
-                ),
-              ),
-            ],
-          ),
-          // Avatar popup menu
+          // Avatar account menu (รวมทุกเมนูไว้ที่เดียว)
           Padding(
             padding: const EdgeInsets.only(right: 8),
             child: PopupMenuButton<String>(
               tooltip: '',
               offset: const Offset(0, 48),
               onSelected: (value) async {
-                if (value == 'editName') {
+                if (value == 'help') {
+                  showHelpSheet(context);
+                } else if (value == 'support') {
+                  _showSupportDialog(context);
+                } else if (value == 'editName') {
                   await _editDisplayName();
+                } else if (value == 'feedback') {
+                  if (mounted) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const SendFeedbackScreen()),
+                    );
+                  }
                 } else if (value == 'signOut') {
                   await _supabase.auth.signOut();
                 }
               },
               itemBuilder: (context) => [
+                // --- Profile header ---
                 PopupMenuItem<String>(
                   enabled: false,
                   child: SizedBox(
@@ -315,6 +283,25 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   ),
                 ),
                 const PopupMenuDivider(),
+                // --- Help ---
+                const PopupMenuItem<String>(
+                  value: 'help',
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.help_outline),
+                    title: Text('วิธีใช้งาน'),
+                  ),
+                ),
+                // --- Support ---
+                const PopupMenuItem<String>(
+                  value: 'support',
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.favorite_border, color: Color(0xFFE11D48)),
+                    title: Text('สนับสนุนโครงการ'),
+                  ),
+                ),
+                // --- Edit name ---
                 PopupMenuItem<String>(
                   value: 'editName',
                   child: ListTile(
@@ -327,7 +314,17 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                     ),
                   ),
                 ),
+                // --- Send feedback ---
+                const PopupMenuItem<String>(
+                  value: 'feedback',
+                  child: ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(Icons.send_outlined),
+                    title: Text('ส่งข้อมูล'),
+                  ),
+                ),
                 const PopupMenuDivider(),
+                // --- Sign out ---
                 const PopupMenuItem<String>(
                   value: 'signOut',
                   child: ListTile(
