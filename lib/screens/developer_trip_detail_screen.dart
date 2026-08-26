@@ -92,7 +92,7 @@ class DeveloperTripDetailScreen extends StatelessWidget {
               _DetailRow(
                 icon: Icons.directions_car_rounded,
                 label: 'ยี่ห้อ',
-                value: vehicle?['vehicle_brand'] ?? '-',
+                value: vehicle?['brand'] ?? '-',
               ),
             ],
           ),

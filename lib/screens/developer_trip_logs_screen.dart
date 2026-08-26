@@ -44,7 +44,7 @@ class _DeveloperTripLogsScreenState extends State<DeveloperTripLogsScreen> {
       var query = _supabase.from('trip_logs').select('''
             *,
             profiles(display_name, google_name, email),
-            vehicles(vehicle_plate, vehicle_brand)
+            vehicles(vehicle_plate, brand)
           ''');
 
       if (_selectedDriverId != null) {
