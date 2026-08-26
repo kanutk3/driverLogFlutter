@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Developer dashboard showing overview statistics.
 class DeveloperStatsScreen extends StatefulWidget {
@@ -158,14 +159,20 @@ class _DeveloperStatsScreenState extends State<DeveloperStatsScreen> {
                   icon: Icons.storage_rounded,
                   title: 'Supabase Dashboard',
                   subtitle: 'จัดการ database โดยตรง',
-                  onTap: () {},
+                  onTap: () => launchUrl(
+                    Uri.parse('https://supabase.com/dashboard/project/uubjrfumfytvhlzrbhji'),
+                    mode: LaunchMode.externalApplication,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 _QuickAction(
                   icon: Icons.cloud_rounded,
                   title: 'Cloudflare Dashboard',
                   subtitle: 'จัดการ hosting และ deploy',
-                  onTap: () {},
+                  onTap: () => launchUrl(
+                    Uri.parse('https://dash.cloudflare.com'),
+                    mode: LaunchMode.externalApplication,
+                  ),
                 ),
               ],
             ],
