@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 
-/// Screen for developer to view all feedback from users.
+/// Screen for developer to view and reply to all feedback from users.
 class FeedbackListScreen extends StatefulWidget {
   const FeedbackListScreen({super.key});
 
@@ -15,6 +15,7 @@ class _FeedbackListScreenState extends State<FeedbackListScreen> {
   List<Map<String, dynamic>> _feedbacks = [];
   bool _isLoading = true;
   String _filterType = 'all';
+  String _filterStatus = 'all';
 
   @override
   void initState() {
@@ -34,6 +35,10 @@ class _FeedbackListScreenState extends State<FeedbackListScreen> {
         query = query.eq('type', _filterType);
       }
 
+      if (_filterStatus != 'all') {
+        query = query.eq('status', _filterStatus);
+      }
+
       final data = await query.order('created_at', ascending: false);
 
       if (mounted) {
@@ -44,6 +49,50 @@ class _FeedbackListScreenState extends State<FeedbackListScreen> {
       }
     } catch (_) {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _replyToFeedback(Map<String, dynamic> feedback) async {
+    final replyController = TextEditingController(
+        text: feedback['developer_reply'] ?? '');
+    final status = feedback['status'] ?? 'new';
+
+    final result = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (context) => _ReplyDialog(
+        replyController: replyController,
+        initialStatus: status,
+      ),
+    );
+
+    if (result == null) return;
+
+    try {
+      await _supabase.from('feedback').update({
+        'developer_reply': result['reply'],
+        'status': result['status'],
+        'replied_at': DateTime.now().toIso8601String(),
+        'replied_by': _supabase.auth.currentUser?.id,
+      }).eq('id', feedback['id']);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('บันทึกสำเร็จ'),
+            backgroundColor: Color(0xFF047857),
+          ),
+        );
+        _loadFeedbacks();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('เกิดข้อผิดพลาด: $e'),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
     }
   }
 
@@ -73,6 +122,32 @@ class _FeedbackListScreenState extends State<FeedbackListScreen> {
     }
   }
 
+  String _statusLabel(String? status) {
+    switch (status) {
+      case 'reviewed':
+        return '👀 ตรวจสอบแล้ว';
+      case 'resolved':
+        return '✅ แก้ไขแล้ว';
+      case 'rejected':
+        return '❌ ปฏิเสธ';
+      default:
+        return '🆕 ใหม่';
+    }
+  }
+
+  Color _statusColor(String? status) {
+    switch (status) {
+      case 'reviewed':
+        return const Color(0xFF2563EB);
+      case 'resolved':
+        return const Color(0xFF047857);
+      case 'rejected':
+        return const Color(0xFFDC2626);
+      default:
+        return const Color(0xFFF59E0B);
+    }
+  }
+
   String _formatDate(String iso) {
     try {
       final dt = DateTime.parse(iso).toLocal();
@@ -93,15 +168,45 @@ class _FeedbackListScreenState extends State<FeedbackListScreen> {
             color: Colors.white,
             border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
           ),
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('กรอง: ', style: TextStyle(fontWeight: FontWeight.w600)),
-              const SizedBox(width: 8),
-              _buildFilterChip('all', 'ทั้งหมด'),
-              _buildFilterChip('bug', '🐛 บั๊ก'),
-              _buildFilterChip('feature', '💡 ฟีเจอร์'),
-              _buildFilterChip('improvement', '⚙️ ปรับปรุง'),
-              _buildFilterChip('other', '📝 อื่น ๆ'),
+              // Type filter
+              Row(
+                children: [
+                  const Text('ประเภท: ',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 12)),
+                  const SizedBox(width: 6),
+                  _buildFilterChip('all', 'ทั้งหมด', _filterType,
+                      (v) => setState(() => _filterType = v)),
+                  _buildFilterChip('bug', '🐛 บั๊ก', _filterType,
+                      (v) => setState(() => _filterType = v)),
+                  _buildFilterChip('feature', '💡 ฟีเจอร์', _filterType,
+                      (v) => setState(() => _filterType = v)),
+                  _buildFilterChip('improvement', '⚙️ ปรับปรุง',
+                      _filterType, (v) => setState(() => _filterType = v)),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // Status filter
+              Row(
+                children: [
+                  const Text('สถานะ: ',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 12)),
+                  const SizedBox(width: 6),
+                  _buildFilterChip('all', 'ทั้งหมด', _filterStatus,
+                      (v) => setState(() => _filterStatus = v)),
+                  _buildFilterChip('new', '🆕 ใหม่', _filterStatus,
+                      (v) => setState(() => _filterStatus = v)),
+                  _buildFilterChip('reviewed', '👀 ตรวจสอบแล้ว',
+                      _filterStatus,
+                      (v) => setState(() => _filterStatus = v)),
+                  _buildFilterChip('resolved', '✅ แก้ไขแล้ว', _filterStatus,
+                      (v) => setState(() => _filterStatus = v)),
+                ],
+              ),
             ],
           ),
         ),
@@ -115,9 +220,11 @@ class _FeedbackListScreenState extends State<FeedbackListScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.feedback_outlined, size: 48, color: Color(0xFF94A3B8)),
+                          Icon(Icons.feedback_outlined,
+                              size: 48, color: Color(0xFF94A3B8)),
                           SizedBox(height: 12),
-                          Text('ยังไม่มี feedback', style: TextStyle(fontWeight: FontWeight.w700)),
+                          Text('ยังไม่มี feedback',
+                              style: TextStyle(fontWeight: FontWeight.w700)),
                         ],
                       ),
                     )
@@ -128,13 +235,20 @@ class _FeedbackListScreenState extends State<FeedbackListScreen> {
                         itemCount: _feedbacks.length,
                         itemBuilder: (context, index) {
                           final fb = _feedbacks[index];
-                          final profile = fb['profiles'] as Map<String, dynamic>?;
+                          final profile =
+                              fb['profiles'] as Map<String, dynamic>?;
                           return _FeedbackCard(
                             feedback: fb,
                             profile: profile,
                             typeLabel: _typeLabel(fb['type'] ?? 'other'),
                             typeColor: _typeColor(fb['type'] ?? 'other'),
-                            formattedDate: _formatDate(fb['created_at'] ?? ''),
+                            statusLabel:
+                                _statusLabel(fb['status']),
+                            statusColor:
+                                _statusColor(fb['status']),
+                            formattedDate:
+                                _formatDate(fb['created_at'] ?? ''),
+                            onReply: () => _replyToFeedback(fb),
                           );
                         },
                       ),
@@ -144,17 +258,15 @@ class _FeedbackListScreenState extends State<FeedbackListScreen> {
     );
   }
 
-  Widget _buildFilterChip(String value, String label) {
-    final isSelected = _filterType == value;
+  Widget _buildFilterChip(
+      String value, String label, String current, Function(String) onTap) {
+    final isSelected = current == value;
     return Padding(
-      padding: const EdgeInsets.only(right: 6),
+      padding: const EdgeInsets.only(right: 4),
       child: ChoiceChip(
-        label: Text(label, style: const TextStyle(fontSize: 12)),
+        label: Text(label, style: const TextStyle(fontSize: 11)),
         selected: isSelected,
-        onSelected: (selected) {
-          setState(() => _filterType = value);
-          _loadFeedbacks();
-        },
+        onSelected: (_) => onTap(value),
         selectedColor: const Color(0xFFDBEAFE),
         visualDensity: VisualDensity.compact,
       ),
@@ -168,17 +280,26 @@ class _FeedbackCard extends StatelessWidget {
     required this.profile,
     required this.typeLabel,
     required this.typeColor,
+    required this.statusLabel,
+    required this.statusColor,
     required this.formattedDate,
+    required this.onReply,
   });
 
   final Map<String, dynamic> feedback;
   final Map<String, dynamic>? profile;
   final String typeLabel;
   final Color typeColor;
+  final String statusLabel;
+  final Color statusColor;
   final String formattedDate;
+  final VoidCallback onReply;
 
   @override
   Widget build(BuildContext context) {
+    final hasReply = feedback['developer_reply'] != null &&
+        (feedback['developer_reply'] as String).isNotEmpty;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
@@ -191,11 +312,12 @@ class _FeedbackCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header: type + date
+            // Header: type + status + date
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: typeColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
@@ -209,16 +331,35 @@ class _FeedbackCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    statusLabel,
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
                 if (feedback['app_version'] != null)
                   Text(
                     'v${feedback['app_version']}',
-                    style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                    style: const TextStyle(
+                        fontSize: 10, color: Color(0xFF94A3B8)),
                   ),
                 const Spacer(),
                 Text(
                   formattedDate,
-                  style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                  style:
+                      const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
                 ),
               ],
             ),
@@ -228,7 +369,8 @@ class _FeedbackCard extends StatelessWidget {
             if (profile != null) ...[
               Row(
                 children: [
-                  const Icon(Icons.person_outline, size: 14, color: Color(0xFF64748B)),
+                  const Icon(Icons.person_outline,
+                      size: 14, color: Color(0xFF64748B)),
                   const SizedBox(width: 4),
                   Text(
                     profile?['display_name'] ?? 'ไม่ระบุชื่อ',
@@ -241,7 +383,8 @@ class _FeedbackCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     profile?['email'] ?? '',
-                    style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
+                    style: const TextStyle(
+                        fontSize: 11, color: Color(0xFF94A3B8)),
                   ),
                 ],
               ),
@@ -270,19 +413,161 @@ class _FeedbackCard extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.contact_phone_outlined, size: 14, color: Color(0xFF64748B)),
+                    const Icon(Icons.contact_phone_outlined,
+                        size: 14, color: Color(0xFF64748B)),
                     const SizedBox(width: 6),
                     Text(
                       feedback['contact'],
-                      style: const TextStyle(fontSize: 12, color: Color(0xFF475569)),
+                      style: const TextStyle(
+                          fontSize: 12, color: Color(0xFF475569)),
                     ),
                   ],
                 ),
               ),
             ],
+
+            // Developer reply
+            if (hasReply) ...[
+              const SizedBox(height: 12),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0FDF4),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFBBF7D0)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.reply_rounded,
+                            size: 14, color: Color(0xFF047857)),
+                        SizedBox(width: 4),
+                        Text(
+                          'คำตอบจาก Developer',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF047857),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      feedback['developer_reply'],
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF1E293B),
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            // Reply button
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: OutlinedButton.icon(
+                onPressed: onReply,
+                icon: const Icon(Icons.reply_rounded, size: 16),
+                label: Text(hasReply ? 'แก้ไขคำตอบ' : 'ตอบกลับ'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF2563EB),
+                  side: const BorderSide(color: Color(0xFFBFDBFE)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ReplyDialog extends StatefulWidget {
+  const _ReplyDialog({
+    required this.replyController,
+    required this.initialStatus,
+  });
+
+  final TextEditingController replyController;
+  final String initialStatus;
+
+  @override
+  State<_ReplyDialog> createState() => _ReplyDialogState();
+}
+
+class _ReplyDialogState extends State<_ReplyDialog> {
+  late String _status;
+
+  @override
+  void initState() {
+    super.initState();
+    _status = widget.initialStatus;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('ตอบกลับ Feedback'),
+      content: SizedBox(
+        width: 400,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Status selector
+            DropdownButtonFormField<String>(
+              value: _status,
+              decoration: const InputDecoration(
+                labelText: 'สถานะ',
+                border: OutlineInputBorder(),
+              ),
+              items: const [
+                DropdownMenuItem(value: 'new', child: Text('🆕 ใหม่')),
+                DropdownMenuItem(
+                    value: 'reviewed', child: Text('👀 ตรวจสอบแล้ว')),
+                DropdownMenuItem(
+                    value: 'resolved', child: Text('✅ แก้ไขแล้ว')),
+                DropdownMenuItem(value: 'rejected', child: Text('❌ ปฏิเสธ')),
+              ],
+              onChanged: (v) => setState(() => _status = v ?? 'new'),
+            ),
+            const SizedBox(height: 16),
+            // Reply text
+            TextField(
+              controller: widget.replyController,
+              maxLines: 4,
+              decoration: const InputDecoration(
+                labelText: 'คำตอบ',
+                hintText: 'พิมพ์คำตอบให้ผู้ใช้...',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('ยกเลิก'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, {
+            'reply': widget.replyController.text,
+            'status': _status,
+          }),
+          child: const Text('บันทึก'),
+        ),
+      ],
     );
   }
 }

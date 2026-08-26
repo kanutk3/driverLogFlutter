@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'developer_stats_screen.dart';
+import 'developer_trip_logs_screen.dart';
 import 'feedback_list_screen.dart';
 import 'user_list_screen.dart';
 
@@ -22,7 +23,8 @@ class _DeveloperHomeScreenState extends State<DeveloperHomeScreen> {
 
   String get _displayName {
     final metadata = _user?.userMetadata;
-    return (metadata?['full_name'] ?? metadata?['name'] ?? 'Developer').toString();
+    return (metadata?['full_name'] ?? metadata?['name'] ?? 'Developer')
+        .toString();
   }
 
   String? get _avatarUrl {
@@ -44,10 +46,11 @@ class _DeveloperHomeScreenState extends State<DeveloperHomeScreen> {
               width: 32,
               height: 32,
               decoration: BoxDecoration(
-                color: const Color(0xFF7C3AED), // สีม่วงสำหรับ developer
+                color: const Color(0xFF7C3AED),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.code_rounded, size: 20, color: Colors.white),
+              child: const Icon(Icons.code_rounded,
+                  size: 20, color: Colors.white),
             ),
             const SizedBox(width: 10),
             const Text.rich(
@@ -64,7 +67,8 @@ class _DeveloperHomeScreenState extends State<DeveloperHomeScreen> {
                   ),
                   TextSpan(
                     text: ' Dev',
-                    style: TextStyle(color: Color(0xFF7C3AED), fontSize: 14),
+                    style:
+                        TextStyle(color: Color(0xFF7C3AED), fontSize: 14),
                   ),
                 ],
               ),
@@ -93,9 +97,12 @@ class _DeveloperHomeScreenState extends State<DeveloperHomeScreen> {
                         CircleAvatar(
                           radius: 18,
                           backgroundColor: const Color(0xFFF3E8FF),
-                          backgroundImage: _avatarUrl == null ? null : NetworkImage(_avatarUrl!),
+                          backgroundImage: _avatarUrl == null
+                              ? null
+                              : NetworkImage(_avatarUrl!),
                           child: _avatarUrl == null
-                              ? const Icon(Icons.person, color: Color(0xFF7C3AED), size: 18)
+                              ? const Icon(Icons.person,
+                                  color: Color(0xFF7C3AED), size: 18)
                               : null,
                         ),
                         const SizedBox(width: 10),
@@ -125,7 +132,8 @@ class _DeveloperHomeScreenState extends State<DeveloperHomeScreen> {
                               ),
                               const SizedBox(height: 2),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFF3E8FF),
                                   borderRadius: BorderRadius.circular(4),
@@ -151,17 +159,22 @@ class _DeveloperHomeScreenState extends State<DeveloperHomeScreen> {
                   value: 'signOut',
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.logout, color: Colors.redAccent),
-                    title: Text('ออกจากระบบ', style: TextStyle(color: Colors.redAccent)),
+                    leading:
+                        Icon(Icons.logout, color: Colors.redAccent),
+                    title: Text('ออกจากระบบ',
+                        style: TextStyle(color: Colors.redAccent)),
                   ),
                 ),
               ],
               child: CircleAvatar(
                 radius: 16,
                 backgroundColor: const Color(0xFFF3E8FF),
-                backgroundImage: _avatarUrl == null ? null : NetworkImage(_avatarUrl!),
+                backgroundImage: _avatarUrl == null
+                    ? null
+                    : NetworkImage(_avatarUrl!),
                 child: _avatarUrl == null
-                    ? const Icon(Icons.person, color: Color(0xFF7C3AED), size: 18)
+                    ? const Icon(Icons.person,
+                        color: Color(0xFF7C3AED), size: 18)
                     : null,
               ),
             ),
@@ -172,13 +185,15 @@ class _DeveloperHomeScreenState extends State<DeveloperHomeScreen> {
         index: _currentIndex,
         children: const [
           DeveloperStatsScreen(),
+          DeveloperTripLogsScreen(),
           FeedbackListScreen(),
           UserListScreen(),
         ],
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (index) => setState(() => _currentIndex = index),
+        onDestinationSelected: (index) =>
+            setState(() => _currentIndex = index),
         backgroundColor: Colors.white,
         elevation: 8,
         shadowColor: Colors.black12,
@@ -189,6 +204,11 @@ class _DeveloperHomeScreenState extends State<DeveloperHomeScreen> {
             icon: Icon(Icons.dashboard_outlined),
             selectedIcon: Icon(Icons.dashboard_rounded),
             label: 'สถิติ',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.route_outlined),
+            selectedIcon: Icon(Icons.route_rounded),
+            label: 'Trip Logs',
           ),
           NavigationDestination(
             icon: Icon(Icons.feedback_outlined),
