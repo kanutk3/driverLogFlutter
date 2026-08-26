@@ -63,16 +63,36 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
                     text: 'Log',
                     style: TextStyle(color: Color(0xFF2563EB)),
                   ),
-                  TextSpan(
-                    text: ' Admin',
-                    style: TextStyle(color: Color(0xFFDC2626), fontSize: 14),
-                  ),
                 ],
               ),
             ),
           ],
         ),
         actions: [
+          // Admin badge
+          Container(
+            margin: const EdgeInsets.only(right: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFEE2E2),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.admin_panel_settings_rounded, size: 14, color: Color(0xFFDC2626)),
+                SizedBox(width: 4),
+                Text(
+                  'Admin',
+                  style: TextStyle(
+                    color: Color(0xFFDC2626),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
           // Avatar
           Padding(
             padding: const EdgeInsets.only(right: 8),

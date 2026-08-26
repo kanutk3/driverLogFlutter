@@ -65,17 +65,36 @@ class _DeveloperHomeScreenState extends State<DeveloperHomeScreen> {
                     text: 'Log',
                     style: TextStyle(color: Color(0xFF2563EB)),
                   ),
-                  TextSpan(
-                    text: ' Dev',
-                    style:
-                        TextStyle(color: Color(0xFF7C3AED), fontSize: 14),
-                  ),
                 ],
               ),
             ),
           ],
         ),
         actions: [
+          // Dev badge
+          Container(
+            margin: const EdgeInsets.only(right: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3E8FF),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.code_rounded, size: 14, color: Color(0xFF7C3AED)),
+                SizedBox(width: 4),
+                Text(
+                  'Dev',
+                  style: TextStyle(
+                    color: Color(0xFF7C3AED),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
           // Avatar
           Padding(
             padding: const EdgeInsets.only(right: 8),
