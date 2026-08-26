@@ -27,9 +27,8 @@ class _FeedbackListScreenState extends State<FeedbackListScreen> {
     setState(() => _isLoading = true);
 
     try {
-      var query = _supabase
-          .from('feedback')
-          .select('*, profiles(display_name, email)');
+      // Query feedback without JOIN (avoids profiles RLS issue)
+      var query = _supabase.from('feedback').select('*');
 
       if (_filterType != 'all') {
         query = query.eq('type', _filterType);
@@ -40,10 +39,41 @@ class _FeedbackListScreenState extends State<FeedbackListScreen> {
       }
 
       final data = await query.order('created_at', ascending: false);
+      final feedbackList = List<Map<String, dynamic>>.from(data);
+
+      // Fetch profiles separately for user names
+      final userIds = feedbackList
+          .map((f) => f['user_id'] as String?)
+          .where((id) => id != null)
+          .toSet()
+          .toList();
+
+      Map<String, Map<String, dynamic>> profileMap = {};
+      if (userIds.isNotEmpty) {
+        try {
+          final profiles = await _supabase
+              .from('profiles')
+              .select('id, display_name, email')
+              .inFilter('id', userIds);
+          for (final p in profiles) {
+            profileMap[p['id'] as String] = p;
+          }
+        } catch (_) {
+          // profiles query failed — show feedback without names
+        }
+      }
+
+      // Merge profile data into feedback
+      for (final fb in feedbackList) {
+        final uid = fb['user_id'] as String?;
+        if (uid != null && profileMap.containsKey(uid)) {
+          fb['profiles'] = profileMap[uid];
+        }
+      }
 
       if (mounted) {
         setState(() {
-          _feedbacks = List<Map<String, dynamic>>.from(data);
+          _feedbacks = feedbackList;
           _isLoading = false;
         });
       }

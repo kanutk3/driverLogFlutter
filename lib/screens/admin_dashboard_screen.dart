@@ -30,125 +30,111 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     _loadStats();
   }
 
-  String _debugInfo = '';
-
   Future<void> _loadStats() async {
-    setState(() {
-      _isLoading = true;
-      _debugInfo = '';
-    });
-
-    final logs = <String>[];
+    setState(() => _isLoading = true);
 
     try {
       // นับ role แต่ละประเภท
-      try {
-        final drivers = await _supabase
-            .from('profiles')
-            .select('id')
-            .eq('role', 'driver');
-        _totalDrivers = drivers.length;
-        logs.add('✅ profiles(driver): $drivers.length');
-      } catch (e) {
-        logs.add('❌ profiles(driver): $e');
-      }
+      final drivers = await _supabase
+          .from('profiles')
+          .select('id')
+          .eq('role', 'driver');
+      _totalDrivers = drivers.length;
 
-      try {
-        final developers = await _supabase
-            .from('profiles')
-            .select('id')
-            .eq('role', 'developer');
-        _totalDevelopers = developers.length;
-        logs.add('✅ profiles(developer): $developers.length');
-      } catch (e) {
-        logs.add('❌ profiles(developer): $e');
-      }
+      final developers = await _supabase
+          .from('profiles')
+          .select('id')
+          .eq('role', 'developer');
+      _totalDevelopers = developers.length;
 
-      try {
-        final admins = await _supabase
-            .from('profiles')
-            .select('id')
-            .eq('role', 'admin');
-        _totalAdmins = admins.length;
-        logs.add('✅ profiles(admin): $admins.length');
-      } catch (e) {
-        logs.add('❌ profiles(admin): $e');
-      }
+      final admins = await _supabase
+          .from('profiles')
+          .select('id')
+          .eq('role', 'admin');
+      _totalAdmins = admins.length;
 
       // จำนวนเที่ยว + ระยะทางรวม
-      try {
-        final trips = await _supabase
-            .from('trip_logs')
-            .select('id, distance');
-        _totalTrips = trips.length;
-        double totalDistance = 0;
-        for (final trip in trips) {
-          final d = trip['distance'];
-          if (d is num) totalDistance += d.toDouble();
-        }
-        _totalDistance = totalDistance;
-        logs.add('✅ trip_logs(count): ${trips.length}');
-      } catch (e) {
-        logs.add('❌ trip_logs(count): $e');
+      final trips = await _supabase
+          .from('trip_logs')
+          .select('id, distance');
+      _totalTrips = trips.length;
+      double totalDistance = 0;
+      for (final trip in trips) {
+        final d = trip['distance'];
+        if (d is num) totalDistance += d.toDouble();
       }
+      _totalDistance = totalDistance;
 
       // จำนวน feedback
-      try {
-        final feedback = await _supabase
-            .from('feedback')
-            .select('id');
-        _totalFeedback = feedback.length;
-        logs.add('✅ feedback(count): ${feedback.length}');
-      } catch (e) {
-        logs.add('❌ feedback(count): $e');
-      }
+      final feedback = await _supabase
+          .from('feedback')
+          .select('id');
+      _totalFeedback = feedback.length;
 
       // จำนวนรถ
-      try {
-        final vehicles = await _supabase
-            .from('vehicles')
-            .select('id');
-        _totalVehicles = vehicles.length;
-        logs.add('✅ vehicles(count): ${vehicles.length}');
-      } catch (e) {
-        logs.add('❌ vehicles(count): $e');
-      }
+      final vehicles = await _supabase
+          .from('vehicles')
+          .select('id');
+      _totalVehicles = vehicles.length;
 
-      // เที่ยวล่าสุด 5 เที่ยว
-      try {
-        final recentTrips = await _supabase
-            .from('trip_logs')
-            .select('id, destination, start_time, distance')
-            .order('start_time', ascending: false)
-            .limit(5);
-        _recentTrips = List<Map<String, dynamic>>.from(recentTrips);
-        logs.add('✅ trip_logs(recent): ${recentTrips.length}');
-      } catch (e) {
-        logs.add('❌ trip_logs(recent): $e');
-      }
+      // เที่ยวล่าสุด 5 เที่ยว (ไม่ JOIN — ดึง profiles แยก)
+      final recentTripsRaw = await _supabase
+          .from('trip_logs')
+          .select('id, destination, start_time, distance, user_id')
+          .order('start_time', ascending: false)
+          .limit(5);
+      _recentTrips = List<Map<String, dynamic>>.from(recentTripsRaw);
 
-      // feedback ล่าสุด 5 รายการ
-      try {
-        final recentFeedback = await _supabase
-            .from('feedback')
-            .select('*')
-            .order('created_at', ascending: false)
-            .limit(5);
-        _recentFeedback = List<Map<String, dynamic>>.from(recentFeedback);
-        logs.add('✅ feedback(recent): ${recentFeedback.length}');
-      } catch (e) {
-        logs.add('❌ feedback(recent): $e');
-      }
+      // feedback ล่าสุด 5 รายการ (ไม่ JOIN)
+      final recentFeedbackRaw = await _supabase
+          .from('feedback')
+          .select('*')
+          .order('created_at', ascending: false)
+          .limit(5);
+      _recentFeedback = List<Map<String, dynamic>>.from(recentFeedbackRaw);
 
-      _debugInfo = logs.join('\n');
+      // ดึง profiles แยกสำหรับ user names
+      final allUserIds = <String>{};
+      for (final t in _recentTrips) {
+        final uid = t['user_id'] as String?;
+        if (uid != null) allUserIds.add(uid);
+      }
+      for (final f in _recentFeedback) {
+        final uid = f['user_id'] as String?;
+        if (uid != null) allUserIds.add(uid);
+      }
+      Map<String, Map<String, dynamic>> profileMap = {};
+      if (allUserIds.isNotEmpty) {
+        try {
+          final profiles = await _supabase
+              .from('profiles')
+              .select('id, display_name, email')
+              .inFilter('id', allUserIds.toList());
+          for (final p in profiles) {
+            profileMap[p['id'] as String] = p;
+          }
+        } catch (_) {}
+      }
+      // Merge profile data
+      for (final t in _recentTrips) {
+        final uid = t['user_id'] as String?;
+        if (uid != null && profileMap.containsKey(uid)) {
+          t['profiles'] = profileMap[uid];
+        }
+      }
+      for (final f in _recentFeedback) {
+        final uid = f['user_id'] as String?;
+        if (uid != null && profileMap.containsKey(uid)) {
+          f['profiles'] = profileMap[uid];
+        }
+      }
 
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
       }
-    } catch (e) {
-      _debugInfo = 'Global error: $e';
+    } catch (_) {
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -188,22 +174,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 style: TextStyle(color: Color(0xFF64748B), fontSize: 14),
               ),
               const SizedBox(height: 20),
-
-              // Debug info
-              if (_debugInfo.isNotEmpty && _debugInfo.contains('❌'))
-                Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFEF2F2),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: const Color(0xFFEF4444)),
-                  ),
-                  child: Text(
-                    _debugInfo,
-                    style: const TextStyle(fontSize: 11, color: Color(0xFFDC2626)),
-                  ),
-                ),
 
               if (_isLoading)
                 const _StatsSkeleton()
