@@ -4,7 +4,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'trip_form_screen.dart';
 import 'trip_history_screen.dart';
 import 'trip_report_screen.dart';
-import 'send_feedback_screen.dart';
 import 'driver_feedback_screen.dart';
 import 'help_sheet.dart';
 
@@ -252,7 +251,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 } else if (value == 'feedback') {
                   if (mounted) {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const SendFeedbackScreen()),
+                      MaterialPageRoute(builder: (_) => const DriverFeedbackScreen()),
                     );
                   }
                 } else if (value == 'signOut') {
@@ -342,13 +341,13 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                     ),
                   ),
                 ),
-                // --- Send feedback ---
+                // --- Feedback history ---
                 const PopupMenuItem<String>(
                   value: 'feedback',
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(Icons.send_outlined),
-                    title: Text('ส่งข้อมูล'),
+                    leading: Icon(Icons.feedback_outlined),
+                    title: Text('Feedback'),
                   ),
                 ),
                 const PopupMenuDivider(),
@@ -395,7 +394,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             embedded: true,
             displayNameNotifier: displayNameNotifier,
           ),
-          const DriverFeedbackScreen(),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -422,11 +420,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             icon: Icon(Icons.ios_share_outlined),
             selectedIcon: Icon(Icons.ios_share_rounded),
             label: 'รายงาน',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.feedback_outlined),
-            selectedIcon: Icon(Icons.feedback_rounded),
-            label: 'Feedback',
           ),
         ],
       ),
