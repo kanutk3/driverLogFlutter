@@ -5,6 +5,7 @@ import 'trip_form_screen.dart';
 import 'trip_history_screen.dart';
 import 'trip_report_screen.dart';
 import 'send_feedback_screen.dart';
+import 'driver_feedback_screen.dart';
 import 'help_sheet.dart';
 
 /// Main workspace shown to an authenticated driver.
@@ -29,6 +30,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
   final ValueNotifier<String?> displayNameNotifier = ValueNotifier<String?>(null);
 
   String? _profileName;
+  String? _profileRole;
 
   User? get _user => _supabase.auth.currentUser;
 
@@ -69,8 +71,10 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           .eq('id', user.id)
           .maybeSingle();
       if (mounted) {
-        setState(
-            () => _profileName = profile?['display_name'] as String?);
+        setState(() {
+          _profileName = profile?['display_name'] as String?;
+          _profileRole = profile?['role'] as String?;
+        });
       }
     } catch (_) {
       // Google profile name remains a safe fallback.
@@ -190,8 +194,8 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
         elevation: 0.5,
         title: const Row(
           children: [
-            _BrandMark(size: 32),
-            SizedBox(width: 10),
+            _BrandMark(size: 40),
+            SizedBox(width: 8),
             Text.rich(
               TextSpan(
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
@@ -208,6 +212,30 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           ],
         ),
         actions: [
+          // User role
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 5,
+              ),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF6FF),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                (_profileRole ?? 'driver').toUpperCase(),
+                style: const TextStyle(
+                  color: Color(0xFF2563EB),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 8),
+          
           // Avatar account menu (รวมทุกเมนูไว้ที่เดียว)
           Padding(
             padding: const EdgeInsets.only(right: 8),
@@ -367,6 +395,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             embedded: true,
             displayNameNotifier: displayNameNotifier,
           ),
+          const DriverFeedbackScreen(),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -393,6 +422,11 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             icon: Icon(Icons.ios_share_outlined),
             selectedIcon: Icon(Icons.ios_share_rounded),
             label: 'รายงาน',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.feedback_outlined),
+            selectedIcon: Icon(Icons.feedback_rounded),
+            label: 'Feedback',
           ),
         ],
       ),
@@ -1147,10 +1181,10 @@ class _BrandMark extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(size * 0.22),
       child: Image.asset(
-        'assets/images/logo.png',
+        'assets/images/driverlog-icon-01.png',
         width: size,
         height: size,
-        fit: BoxFit.cover,
+        fit: BoxFit.contain,
       ),
     );
   }
