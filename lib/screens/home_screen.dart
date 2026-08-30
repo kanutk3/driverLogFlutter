@@ -243,7 +243,7 @@ class CustomAppLogo extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(size * 0.22),
       child: Image.asset(
-        'assets/images/logo.png',
+        'assets/images/driverlog-icon-01.png',
         width: size,
         height: size,
         fit: BoxFit.cover,
