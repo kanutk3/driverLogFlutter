@@ -129,19 +129,19 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 24),
 
                 // 2. App Title & Headline
-                RichText(
-                  textAlign: TextAlign.center,
-                  text: const TextSpan(
-                    style: TextStyle(fontSize: 36, fontWeight: FontWeight.w800),
-                    children: [
+                Text.rich(
+                  TextSpan(
+                    style: const TextStyle(fontSize: 36, fontWeight: FontWeight.w800),
+                    children: const [
                       TextSpan(text: 'driver', style: TextStyle(color: Color(0xFF0F172A))),
                       TextSpan(text: 'Log', style: TextStyle(color: Color(0xFF2563EB))),
                     ],
                   ),
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  'ระบบบันทึกและจัดการการเดินรถอัจฉริยะสำหรับคนขับมืออาชีพ',
+                  'ระบบบันทึกและจัดการการเดินรถอัจฉริยะ สำหรับคนขับมืออาชีพ',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
