@@ -762,40 +762,38 @@ class _RecentTripCard extends StatelessWidget {
         : DateTime.parse(trip['end_time'] as String).toLocal();
     final vehicle = trip['vehicles'] as Map<String, dynamic>?;
     final plate = vehicle?['vehicle_plate'] as String? ?? '';
-    final province = vehicle?['province'] as String?;
-    final startOdo = trip['start_odometer']?.toString() ?? '-';
-    final endOdo = trip['end_odometer']?.toString() ?? '-';
     final distance = trip['distance'] is num
         ? (trip['distance'] as num).toDouble()
         : null;
     final ticketPrice = trip['ticket_price'];
     final tollFee = trip['toll_fee'];
     final isDraft = endTime == null;
+    final totalCost = (ticketPrice is num ? ticketPrice.toDouble() : 0) +
+        (tollFee is num ? tollFee.toDouble() : 0);
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 8),
       elevation: 0,
       color: Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         side: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- Row 1: Status + Date + Vehicle ---
+            // Row 1: Status badge + Destination + Date
             Row(
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                     color: isDraft
                         ? const Color(0xFFFFF7ED)
                         : const Color(0xFFECFDF5),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     isDraft ? 'ร่าง' : 'จบแล้ว',
@@ -803,98 +801,90 @@ class _RecentTripCard extends StatelessWidget {
                       color: isDraft
                           ? const Color(0xFFC2410C)
                           : const Color(0xFF047857),
-                      fontSize: 11,
+                      fontSize: 10,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                if (plate.isNotEmpty)
-                  Text(
-                    '$plate${province == null ? '' : ' $province'}',
+                Expanded(
+                  child: Text(
+                    trip['destination'] as String? ?? '-',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                        color: Color(0xFF475569),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600),
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF0F172A),
+                    ),
                   ),
-                const Spacer(),
+                ),
+                const SizedBox(width: 8),
                 Text(
                   formatDate(startTime),
                   style: const TextStyle(
-                      color: Color(0xFF64748B), fontSize: 12),
+                    color: Color(0xFF94A3B8),
+                    fontSize: 11,
+                  ),
                 ),
               ],
-            ),
-            const SizedBox(height: 10),
-
-            // --- Destination ---
-            Text(
-              trip['destination'] as String? ?? '-',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 6),
 
-            // --- Time range ---
+            // Row 2: Plate + Time + Distance + Cost
             Row(
               children: [
+                if (plate.isNotEmpty) ...[
+                  Icon(Icons.directions_car_outlined,
+                      size: 12, color: const Color(0xFF94A3B8)),
+                  const SizedBox(width: 3),
+                  Text(
+                    plate,
+                    style: const TextStyle(
+                      color: Color(0xFF475569),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                ],
                 Icon(Icons.schedule_outlined,
-                    size: 13, color: const Color(0xFF64748B)),
-                const SizedBox(width: 4),
+                    size: 12, color: const Color(0xFF94A3B8)),
+                const SizedBox(width: 3),
                 Text(
                   endTime == null
                       ? formatTime(startTime)
-                      : '${formatTime(startTime)} – ${formatTime(endTime)}',
+                      : '${formatTime(startTime)}-${formatTime(endTime)}',
                   style: const TextStyle(
-                      color: Color(0xFF475569), fontSize: 12),
+                    color: Color(0xFF475569),
+                    fontSize: 11,
+                  ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 10),
-
-            // --- Detail grid ---
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                children: [
-                  _DetailRow(
-                    label: 'เลขไมล์',
-                    value: '$startOdo → $endOdo กม.',
-                  ),
-                  const SizedBox(height: 6),
-                  _DetailRow(
-                    label: 'ตั๋ว',
-                    value: trip['ticket_number'] as String? ?? '-',
-                  ),
-                  const SizedBox(height: 6),
-                  _DetailRow(
-                    label: 'ค่าตั๋ว',
-                    value: '${_money(ticketPrice)} บาท',
-                  ),
-                  if (tollFee != null &&
-                      (tollFee is num ? tollFee.toDouble() : 0) > 0) ...[
-                    const SizedBox(height: 6),
-                    _DetailRow(
-                      label: 'ค่าทางด่วน',
-                      value: '${_money(tollFee)} บาท',
+                const Spacer(),
+                if (distance != null) ...[
+                  Icon(Icons.straighten_rounded,
+                      size: 12, color: const Color(0xFF94A3B8)),
+                  const SizedBox(width: 3),
+                  Text(
+                    '${distance.toStringAsFixed(1)} กม.',
+                    style: const TextStyle(
+                      color: Color(0xFF475569),
+                      fontSize: 11,
                     ),
-                  ],
-                  if (distance != null) ...[
-                    const SizedBox(height: 6),
-                    _DetailRow(
-                      label: 'ระยะทาง',
-                      value: '${distance.toStringAsFixed(1)} กม.',
-                      valueBold: true,
-                    ),
-                  ],
+                  ),
+                  const SizedBox(width: 10),
                 ],
-              ),
+                if (totalCost > 0) ...[
+                  Text(
+                    '${_money(totalCost)} บาท',
+                    style: const TextStyle(
+                      color: Color(0xFF2563EB),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ],
             ),
           ],
         ),
@@ -903,44 +893,7 @@ class _RecentTripCard extends StatelessWidget {
   }
 }
 
-class _DetailRow extends StatelessWidget {
-  const _DetailRow({
-    required this.label,
-    required this.value,
-    this.valueBold = false,
-  });
 
-  final String label;
-  final String value;
-  final bool valueBold;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 80,
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: Color(0xFF64748B),
-              fontSize: 12,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: valueBold ? FontWeight.w700 : FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
 
 // ============================================================================
 // Loading skeletons
@@ -1013,12 +966,12 @@ class _TripSkeleton extends StatelessWidget {
       children: List.generate(
         2,
         (i) => Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(14),
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Color(0xFFE2E8F0)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1026,17 +979,28 @@ class _TripSkeleton extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    width: 50,
-                    height: 20,
+                    width: 40,
+                    height: 16,
                     decoration: BoxDecoration(
                       color: const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(20),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Container(
+                      width: 140 + i * 30.0,
+                      height: 14,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
                   Container(
-                    width: 80,
-                    height: 14,
+                    width: 60,
+                    height: 12,
                     decoration: BoxDecoration(
                       color: const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(8),
@@ -1044,23 +1008,36 @@ class _TripSkeleton extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
-              Container(
-                width: 140 + i * 30.0,
-                height: 16,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Container(
-                width: 100,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(8),
-                ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Container(
+                    width: 70,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Container(
+                    width: 50,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    width: 60,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
