@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'trip_form_screen.dart';
 import 'trip_report_screen.dart';
 import '../widgets/trip_hint_banner.dart';
+import '../widgets/trip_card.dart';
 
 enum _TripView { cards, table }
 
@@ -95,8 +96,6 @@ class _TripHistoryScreenState extends State<TripHistoryScreen> {
     final minute = value.minute.toString().padLeft(2, '0');
     return '$hour:$minute';
   }
-
-  String _money(double value) => value.toStringAsFixed(0);
 
   DateTimeRange _exportRange(List<Map<String, dynamic>> trips) {
     if (_dateRange != null) return _dateRange!;
@@ -325,13 +324,11 @@ class _TripHistoryScreenState extends State<TripHistoryScreen> {
                           if (showTable)
                             _TripTable(trips: trips, formatDate: _formatDate, number: _number, onEdit: _editTrip)
                           else
-                            ...trips.map((trip) => _TripHistoryCard(
+                            ...trips.map((trip) => TripCard(
                                   trip: trip,
-                                  number: _number,
                                   formatDate: _formatDate,
                                   formatTime: _formatTime,
-                                  money: _money,
-                                  onEdit: () => _editTrip(trip['id'] as String),
+                                  onTap: () => _editTrip(trip['id'] as String),
                                 )),
                         ],
                       ),
@@ -394,131 +391,7 @@ class _HistorySummary extends StatelessWidget {
   }
 }
 
-class _TripHistoryCard extends StatelessWidget {
-  const _TripHistoryCard({
-    required this.trip,
-    required this.number,
-    required this.formatDate,
-    required this.formatTime,
-    required this.money,
-    required this.onEdit,
-  });
 
-  final Map<String, dynamic> trip;
-  final double Function(dynamic value) number;
-  final String Function(DateTime value) formatDate;
-  final String Function(DateTime value) formatTime;
-  final String Function(double value) money;
-  final VoidCallback onEdit;
-
-  @override
-  Widget build(BuildContext context) {
-    final startTime = DateTime.parse(trip['start_time'] as String).toLocal();
-    final endTime = trip['end_time'] == null ? null : DateTime.parse(trip['end_time'] as String).toLocal();
-    final vehicle = trip['vehicles'] as Map<String, dynamic>?;
-    final plate = vehicle?['vehicle_plate'] as String? ?? 'ไม่ระบุรถ';
-    final province = vehicle?['province'] as String?;
-    final distance = trip['distance'] == null ? null : number(trip['distance']);
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 0,
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFFE2E8F0)),
-      ),
-      child: InkWell(
-        onTap: onEdit,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Row 1: Ticket + Destination + Date
-            Row(
-              children: [
-                if ((trip['ticket_number'] as String? ?? '').isNotEmpty) ...[
-                  Icon(Icons.confirmation_number_outlined,
-                      size: 14, color: const Color(0xFF64748B)),
-                  const SizedBox(width: 4),
-                  Text(
-                    trip['ticket_number'] as String? ?? '',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF475569),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                ],
-                Expanded(
-                  child: Text(
-                    trip['destination'] as String,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  formatDate(startTime),
-                  style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // Row 2: Car (left) + Time (right)
-            Row(
-              children: [
-                Icon(Icons.directions_car_outlined,
-                    size: 13, color: const Color(0xFF94A3B8)),
-                const SizedBox(width: 4),
-                Text(
-                  '$plate${province == null ? '' : ' $province'}',
-                  style: const TextStyle(
-                    color: Color(0xFF475569),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const Spacer(),
-                Icon(Icons.schedule_outlined,
-                    size: 13, color: const Color(0xFF94A3B8)),
-                const SizedBox(width: 4),
-                Text(
-                  endTime == null
-                      ? formatTime(startTime)
-                      : '${formatTime(startTime)} – ${formatTime(endTime)}',
-                  style: const TextStyle(
-                    color: Color(0xFF475569),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Text(
-                  distance == null ? 'ยังไม่สรุประยะทาง' : '${distance.toStringAsFixed(1)} กม.',
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-                const Spacer(),
-                Text(
-                  '${money(number(trip['ticket_price']))} บาท',
-                  style: const TextStyle(color: Color(0xFF1D4ED8), fontWeight: FontWeight.w800),
-                ),
-              ],
-            ),
-          ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _TripTable extends StatelessWidget {
   const _TripTable({

@@ -6,6 +6,7 @@ import 'trip_history_screen.dart';
 import 'trip_report_screen.dart';
 import 'driver_feedback_screen.dart';
 import 'help_sheet.dart';
+import '../widgets/trip_card.dart';
 
 /// Main workspace shown to an authenticated driver.
 ///
@@ -582,7 +583,7 @@ class _HomeTabState extends State<_HomeTab> {
                 const _EmptyTripState()
               else
                 ..._recentTrips.map(
-                  (trip) => _RecentTripCard(
+                  (trip) => TripCard(
                     trip: trip,
                     formatDate: _formatDate,
                     formatTime: _formatTime,
@@ -735,167 +736,7 @@ class _SummaryStat extends StatelessWidget {
   }
 }
 
-// ============================================================================
-// Recent Trip Card
-// ============================================================================
 
-class _RecentTripCard extends StatelessWidget {
-  const _RecentTripCard({
-    required this.trip,
-    required this.formatDate,
-    required this.formatTime,
-  });
-
-  final Map<String, dynamic> trip;
-  final String Function(DateTime) formatDate;
-  final String Function(DateTime) formatTime;
-
-  String _money(dynamic v) =>
-      v is num ? v.toDouble().toStringAsFixed(0) : '-';
-
-  @override
-  Widget build(BuildContext context) {
-    final startTime =
-        DateTime.parse(trip['start_time'] as String).toLocal();
-    final endTime = trip['end_time'] == null
-        ? null
-        : DateTime.parse(trip['end_time'] as String).toLocal();
-    final vehicle = trip['vehicles'] as Map<String, dynamic>?;
-    final plate = vehicle?['vehicle_plate'] as String? ?? '';
-    final ticketNumber = trip['ticket_number'] as String? ?? '';
-    final distance = trip['distance'] is num
-        ? (trip['distance'] as num).toDouble()
-        : null;
-    final ticketPrice = trip['ticket_price'];
-    final tollFee = trip['toll_fee'];
-    final totalCost = (ticketPrice is num ? ticketPrice.toDouble() : 0) +
-        (tollFee is num ? tollFee.toDouble() : 0);
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      elevation: 0,
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: Color(0xFFE2E8F0)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Row 1: Ticket + Destination + Date
-            Row(
-              children: [
-                if (ticketNumber.isNotEmpty) ...[
-                  Icon(Icons.confirmation_number_outlined,
-                      size: 14, color: const Color(0xFF64748B)),
-                  const SizedBox(width: 4),
-                  Text(
-                    ticketNumber,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF475569),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                ],
-                Expanded(
-                  child: Text(
-                    trip['destination'] as String? ?? '-',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF0F172A),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  formatDate(startTime),
-                  style: const TextStyle(
-                    color: Color(0xFF94A3B8),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // Row 2: Car (left) + Time (right)
-            Row(
-              children: [
-                if (plate.isNotEmpty) ...[
-                  Icon(Icons.directions_car_outlined,
-                      size: 13, color: const Color(0xFF94A3B8)),
-                  const SizedBox(width: 4),
-                  Text(
-                    plate,
-                    style: const TextStyle(
-                      color: Color(0xFF475569),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-                const Spacer(),
-                Icon(Icons.schedule_outlined,
-                    size: 13, color: const Color(0xFF94A3B8)),
-                const SizedBox(width: 4),
-                Text(
-                  endTime == null
-                      ? formatTime(startTime)
-                      : '${formatTime(startTime)} – ${formatTime(endTime)}',
-                  style: const TextStyle(
-                    color: Color(0xFF475569),
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-
-            // Row 3: Distance + Cost
-            Row(
-              children: [
-                if (distance != null) ...[
-                  Text(
-                    '${distance.toStringAsFixed(1)} กม.',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF0F172A),
-                    ),
-                  ),
-                ] else
-                  const Text(
-                    '-',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Color(0xFF94A3B8),
-                    ),
-                  ),
-                const Spacer(),
-                if (totalCost > 0)
-                  Text(
-                    '${_money(totalCost)} บาท',
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFF2563EB),
-                    ),
-                  ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 
 
