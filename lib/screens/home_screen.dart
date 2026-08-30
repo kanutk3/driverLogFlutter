@@ -174,7 +174,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         _FeatureCard(icon: Icons.speed_rounded, title: 'ติดตามระยะทาง', subtitle: 'ดูระยะทางรวม\nและสถิติรายวัน', color: Color(0xFF047857)),
                         _FeatureCard(icon: Icons.ios_share_rounded, title: 'ส่งออก JPG', subtitle: 'สร้างรายงานภาพ\nพร้อม QR Code', color: Color(0xFFC2410C)),
                         _FeatureCard(icon: Icons.history_rounded, title: 'ประวัติการเดินทาง', subtitle: 'ดูเที่ยวล่าสุด 5 เที่ยว\nพร้อมรายละเอียด', color: Color(0xFF7C3AED)),
-                        _FeatureCard(icon: Icons.feedback_rounded, title: 'ส่ง Feedback', subtitle: 'แจ้งปัญหาหรือ\nแนะนำฟีเจอร์ใหม่', color: Color(0xFFDC2626)),
+                        _FeatureCard(icon: Icons.feedback_rounded, title: 'ส่งความคิดเห็น', subtitle: 'แจ้งปัญหาหรือ\nแนะนำฟีเจอร์ใหม่', color: Color(0xFFDC2626)),
                         _FeatureCard(icon: Icons.help_outline_rounded, title: 'วิธีใช้งาน', subtitle: 'คู่มือการใช้งาน\nทีละขั้นตอน', color: Color(0xFF0891B2)),
                       ],
                     );

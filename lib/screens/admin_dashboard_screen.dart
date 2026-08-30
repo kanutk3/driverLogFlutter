@@ -255,7 +255,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     Expanded(
                       child: _StatCard(
                         icon: Icons.feedback_rounded,
-                        label: 'Feedback',
+                        label: 'ความคิดเห็น',
                         value: '$_totalFeedback',
                         unit: 'รายการ',
                         color: const Color(0xFF7C3AED),
@@ -278,10 +278,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 const SizedBox(height: 24),
 
                 // Recent feedback
-                _SectionTitle(title: 'Feedback ล่าสุด'),
+                _SectionTitle(title: 'ความคิดเห็นล่าสุด'),
                 const SizedBox(height: 10),
                 if (_recentFeedback.isEmpty)
-                  const _EmptyState(text: 'ยังไม่มี feedback')
+                  const _EmptyState(text: 'ยังไม่มีความคิดเห็น')
                 else
                   ..._recentFeedback.map((fb) => _RecentFeedbackTile(
                         feedback: fb,

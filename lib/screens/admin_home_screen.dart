@@ -210,7 +210,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           NavigationDestination(
             icon: Icon(Icons.dashboard_outlined),
             selectedIcon: Icon(Icons.dashboard_rounded),
-            label: '仪表板',
+            label: 'สถิติ',
           ),
           NavigationDestination(
             icon: Icon(Icons.people_outlined),
@@ -220,7 +220,7 @@ class _AdminHomeScreenState extends State<AdminHomeScreen> {
           NavigationDestination(
             icon: Icon(Icons.feedback_outlined),
             selectedIcon: Icon(Icons.feedback_rounded),
-            label: 'Feedback',
+            label: 'ความคิดเห็น',
           ),
           NavigationDestination(
             icon: Icon(Icons.directions_car_outlined),

@@ -52,7 +52,7 @@ class _AdminFeedbackManageScreenState extends State<AdminFeedbackManageScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('ยืนยันการลบ'),
-        content: const Text('ต้องการลบ feedback นี้ใช่หรือไม่?'),
+        content: const Text('ต้องการลบความคิดเห็นนี้ใช่หรือไม่?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('ยกเลิก')),
           FilledButton(
@@ -71,7 +71,7 @@ class _AdminFeedbackManageScreenState extends State<AdminFeedbackManageScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('ลบ feedback สำเร็จ'), backgroundColor: Color(0xFF047857)),
+          const SnackBar(content: Text('ลบความคิดเห็นสำเร็จ'), backgroundColor: Color(0xFF047857)),
         );
         _loadFeedbacks();
       }
@@ -155,7 +155,7 @@ class _AdminFeedbackManageScreenState extends State<AdminFeedbackManageScreen> {
                         children: [
                           Icon(Icons.feedback_outlined, size: 48, color: Color(0xFF94A3B8)),
                           SizedBox(height: 12),
-                          Text('ยังไม่มี feedback', style: TextStyle(fontWeight: FontWeight.w700)),
+                          Text('ยังไม่มีความคิดเห็น', style: TextStyle(fontWeight: FontWeight.w700)),
                         ],
                       ),
                     )

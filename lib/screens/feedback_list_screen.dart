@@ -253,7 +253,7 @@ class _FeedbackListScreenState extends State<FeedbackListScreen> {
                           Icon(Icons.feedback_outlined,
                               size: 48, color: Color(0xFF94A3B8)),
                           SizedBox(height: 12),
-                          Text('ยังไม่มี feedback',
+                          Text('ยังไม่มีความคิดเห็น',
                               style: TextStyle(fontWeight: FontWeight.w700)),
                         ],
                       ),
@@ -548,7 +548,7 @@ class _ReplyDialogState extends State<_ReplyDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('ตอบกลับ Feedback'),
+      title: const Text('ตอบกลับความคิดเห็น'),
       content: SizedBox(
         width: 400,
         child: Column(

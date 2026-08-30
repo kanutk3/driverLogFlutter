@@ -123,7 +123,7 @@ class _DriverFeedbackScreenState extends State<DriverFeedbackScreen> {
             children: [
               const Expanded(
                 child: Text(
-                  'Feedback ของฉัน',
+                  'ความคิดเห็นของฉัน',
                   style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
                 ),
               ),
@@ -353,11 +353,11 @@ class _EmptyFeedback extends StatelessWidget {
         children: [
           const Icon(Icons.feedback_outlined, size: 48, color: Color(0xFF94A3B8)),
           const SizedBox(height: 12),
-          const Text('ยังไม่มี feedback',
+          const Text('ยังไม่มีความคิดเห็น',
               style: TextStyle(fontWeight: FontWeight.w700)),
           const SizedBox(height: 4),
           const Text(
-            'กดปุ่ม "ส่งใหม่" เพื่อส่ง feedback ให้ทีมงาน',
+            'กดปุ่ม "ส่งใหม่" เพื่อส่งความคิดเห็นให้ทีมงาน',
             style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
           ),
         ],

@@ -232,7 +232,7 @@ class _DeveloperHomeScreenState extends State<DeveloperHomeScreen> {
           NavigationDestination(
             icon: Icon(Icons.feedback_outlined),
             selectedIcon: Icon(Icons.feedback_rounded),
-            label: 'Feedback',
+            label: 'ความคิดเห็น',
           ),
           NavigationDestination(
             icon: Icon(Icons.people_outlined),
