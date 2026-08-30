@@ -784,9 +784,23 @@ class _RecentTripCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Row 1: Destination + Date
+            // Row 1: Ticket + Destination + Date
             Row(
               children: [
+                if (ticketNumber.isNotEmpty) ...[
+                  Icon(Icons.confirmation_number_outlined,
+                      size: 14, color: const Color(0xFF64748B)),
+                  const SizedBox(width: 4),
+                  Text(
+                    ticketNumber,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF475569),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                ],
                 Expanded(
                   child: Text(
                     trip['destination'] as String? ?? '-',
@@ -794,7 +808,7 @@ class _RecentTripCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                       color: Color(0xFF0F172A),
                     ),
                   ),
@@ -809,29 +823,15 @@ class _RecentTripCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
 
-            // Row 2: Ticket + Plate + Time + Distance + Cost
+            // Row 2: Car (left) + Time (right)
             Row(
               children: [
-                if (ticketNumber.isNotEmpty) ...[
-                  Icon(Icons.confirmation_number_outlined,
-                      size: 13, color: const Color(0xFF94A3B8)),
-                  const SizedBox(width: 3),
-                  Text(
-                    ticketNumber,
-                    style: const TextStyle(
-                      color: Color(0xFF475569),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                ],
                 if (plate.isNotEmpty) ...[
                   Icon(Icons.directions_car_outlined,
                       size: 13, color: const Color(0xFF94A3B8)),
-                  const SizedBox(width: 3),
+                  const SizedBox(width: 4),
                   Text(
                     plate,
                     style: const TextStyle(
@@ -840,44 +840,54 @@ class _RecentTripCard extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(width: 10),
                 ],
+                const Spacer(),
                 Icon(Icons.schedule_outlined,
                     size: 13, color: const Color(0xFF94A3B8)),
-                const SizedBox(width: 3),
+                const SizedBox(width: 4),
                 Text(
                   endTime == null
                       ? formatTime(startTime)
-                      : '${formatTime(startTime)}-${formatTime(endTime)}',
+                      : '${formatTime(startTime)} – ${formatTime(endTime)}',
                   style: const TextStyle(
                     color: Color(0xFF475569),
                     fontSize: 12,
                   ),
                 ),
-                const Spacer(),
+              ],
+            ),
+            const SizedBox(height: 8),
+
+            // Row 3: Distance + Cost
+            Row(
+              children: [
                 if (distance != null) ...[
-                  Icon(Icons.straighten_rounded,
-                      size: 13, color: const Color(0xFF94A3B8)),
-                  const SizedBox(width: 3),
                   Text(
                     '${distance.toStringAsFixed(1)} กม.',
                     style: const TextStyle(
-                      color: Color(0xFF475569),
-                      fontSize: 12,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF0F172A),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                ],
-                if (totalCost > 0) ...[
+                ] else
+                  const Text(
+                    '-',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Color(0xFF94A3B8),
+                    ),
+                  ),
+                const Spacer(),
+                if (totalCost > 0)
                   Text(
                     '${_money(totalCost)} บาท',
                     style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
                       color: Color(0xFF2563EB),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
                     ),
                   ),
-                ],
               ],
             ),
           ],
