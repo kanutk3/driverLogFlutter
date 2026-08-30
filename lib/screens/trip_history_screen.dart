@@ -419,8 +419,6 @@ class _TripHistoryCard extends StatelessWidget {
     final plate = vehicle?['vehicle_plate'] as String? ?? 'ไม่ระบุรถ';
     final province = vehicle?['province'] as String?;
     final distance = trip['distance'] == null ? null : number(trip['distance']);
-    final isDraft = endTime == null;
-
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
@@ -439,33 +437,19 @@ class _TripHistoryCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: isDraft ? const Color(0xFFFFF7ED) : const Color(0xFFECFDF5),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
+                Expanded(
                   child: Text(
-                    isDraft ? 'ร่าง' : 'จบแล้ว',
-                    style: TextStyle(
-                      color: isDraft ? const Color(0xFFC2410C) : const Color(0xFF047857),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    trip['destination'] as String,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
                   ),
                 ),
-                const Spacer(),
-                Text(formatDate(startTime), style: const TextStyle(color: Color(0xFF64748B))),
+                const SizedBox(width: 8),
+                Text(formatDate(startTime), style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              trip['destination'] as String,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Wrap(
               spacing: 14,
               runSpacing: 6,

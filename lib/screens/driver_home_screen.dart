@@ -762,6 +762,7 @@ class _RecentTripCard extends StatelessWidget {
         : DateTime.parse(trip['end_time'] as String).toLocal();
     final vehicle = trip['vehicles'] as Map<String, dynamic>?;
     final plate = vehicle?['vehicle_plate'] as String? ?? '';
+    final ticketNumber = trip['ticket_number'] as String? ?? '';
     final distance = trip['distance'] is num
         ? (trip['distance'] as num).toDouble()
         : null;
@@ -810,9 +811,23 @@ class _RecentTripCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
 
-            // Row 2: Plate + Time + Distance + Cost
+            // Row 2: Ticket + Plate + Time + Distance + Cost
             Row(
               children: [
+                if (ticketNumber.isNotEmpty) ...[
+                  Icon(Icons.confirmation_number_outlined,
+                      size: 13, color: const Color(0xFF94A3B8)),
+                  const SizedBox(width: 3),
+                  Text(
+                    ticketNumber,
+                    style: const TextStyle(
+                      color: Color(0xFF475569),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                ],
                 if (plate.isNotEmpty) ...[
                   Icon(Icons.directions_car_outlined,
                       size: 13, color: const Color(0xFF94A3B8)),
