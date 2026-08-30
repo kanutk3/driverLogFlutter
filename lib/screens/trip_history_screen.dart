@@ -435,34 +435,70 @@ class _TripHistoryCard extends StatelessWidget {
           child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Row 1: Ticket + Destination + Date
             Row(
               children: [
+                if ((trip['ticket_number'] as String? ?? '').isNotEmpty) ...[
+                  Icon(Icons.confirmation_number_outlined,
+                      size: 14, color: const Color(0xFF64748B)),
+                  const SizedBox(width: 4),
+                  Text(
+                    trip['ticket_number'] as String? ?? '',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF475569),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                ],
                 Expanded(
                   child: Text(
                     trip['destination'] as String,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w800),
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(formatDate(startTime), style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12)),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 14,
-              runSpacing: 6,
-              children: [
-                _TripMeta(icon: Icons.confirmation_number_outlined, text: trip['ticket_number'] as String? ?? '-'),
-                _TripMeta(icon: Icons.directions_car_outlined, text: '$plate${province == null ? '' : ' $province'}'),
-                _TripMeta(
-                  icon: Icons.schedule_outlined,
-                  text: endTime == null ? formatTime(startTime) : '${formatTime(startTime)} – ${formatTime(endTime)}',
+                Text(
+                  formatDate(startTime),
+                  style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
                 ),
               ],
             ),
-            const Divider(height: 26),
+            const SizedBox(height: 8),
+
+            // Row 2: Car (left) + Time (right)
+            Row(
+              children: [
+                Icon(Icons.directions_car_outlined,
+                    size: 13, color: const Color(0xFF94A3B8)),
+                const SizedBox(width: 4),
+                Text(
+                  '$plate${province == null ? '' : ' $province'}',
+                  style: const TextStyle(
+                    color: Color(0xFF475569),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                Icon(Icons.schedule_outlined,
+                    size: 13, color: const Color(0xFF94A3B8)),
+                const SizedBox(width: 4),
+                Text(
+                  endTime == null
+                      ? formatTime(startTime)
+                      : '${formatTime(startTime)} – ${formatTime(endTime)}',
+                  style: const TextStyle(
+                    color: Color(0xFF475569),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
             Row(
               children: [
                 Text(
@@ -531,25 +567,6 @@ class _TripTable extends StatelessWidget {
           }).toList(),
         ),
       ),
-    );
-  }
-}
-
-class _TripMeta extends StatelessWidget {
-  const _TripMeta({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 16, color: const Color(0xFF64748B)),
-        const SizedBox(width: 4),
-        Text(text, style: const TextStyle(color: Color(0xFF475569), fontSize: 13)),
-      ],
     );
   }
 }
