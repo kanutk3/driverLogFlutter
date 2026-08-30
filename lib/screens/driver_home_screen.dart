@@ -767,7 +767,6 @@ class _RecentTripCard extends StatelessWidget {
         : null;
     final ticketPrice = trip['ticket_price'];
     final tollFee = trip['toll_fee'];
-    final isDraft = endTime == null;
     final totalCost = (ticketPrice is num ? ticketPrice.toDouble() : 0) +
         (tollFee is num ? tollFee.toDouble() : 0);
 
@@ -780,40 +779,20 @@ class _RecentTripCard extends StatelessWidget {
         side: const BorderSide(color: Color(0xFFE2E8F0)),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Row 1: Status badge + Destination + Date
+            // Row 1: Destination + Date
             Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: isDraft
-                        ? const Color(0xFFFFF7ED)
-                        : const Color(0xFFECFDF5),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    isDraft ? 'ร่าง' : 'จบแล้ว',
-                    style: TextStyle(
-                      color: isDraft
-                          ? const Color(0xFFC2410C)
-                          : const Color(0xFF047857),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     trip['destination'] as String? ?? '-',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: Color(0xFF0F172A),
                     ),
@@ -824,7 +803,7 @@ class _RecentTripCard extends StatelessWidget {
                   formatDate(startTime),
                   style: const TextStyle(
                     color: Color(0xFF94A3B8),
-                    fontSize: 11,
+                    fontSize: 12,
                   ),
                 ),
               ],
@@ -836,20 +815,20 @@ class _RecentTripCard extends StatelessWidget {
               children: [
                 if (plate.isNotEmpty) ...[
                   Icon(Icons.directions_car_outlined,
-                      size: 12, color: const Color(0xFF94A3B8)),
+                      size: 13, color: const Color(0xFF94A3B8)),
                   const SizedBox(width: 3),
                   Text(
                     plate,
                     style: const TextStyle(
                       color: Color(0xFF475569),
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(width: 10),
                 ],
                 Icon(Icons.schedule_outlined,
-                    size: 12, color: const Color(0xFF94A3B8)),
+                    size: 13, color: const Color(0xFF94A3B8)),
                 const SizedBox(width: 3),
                 Text(
                   endTime == null
@@ -857,19 +836,19 @@ class _RecentTripCard extends StatelessWidget {
                       : '${formatTime(startTime)}-${formatTime(endTime)}',
                   style: const TextStyle(
                     color: Color(0xFF475569),
-                    fontSize: 11,
+                    fontSize: 12,
                   ),
                 ),
                 const Spacer(),
                 if (distance != null) ...[
                   Icon(Icons.straighten_rounded,
-                      size: 12, color: const Color(0xFF94A3B8)),
+                      size: 13, color: const Color(0xFF94A3B8)),
                   const SizedBox(width: 3),
                   Text(
                     '${distance.toStringAsFixed(1)} กม.',
                     style: const TextStyle(
                       color: Color(0xFF475569),
-                      fontSize: 11,
+                      fontSize: 12,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -879,7 +858,7 @@ class _RecentTripCard extends StatelessWidget {
                     '${_money(totalCost)} บาท',
                     style: const TextStyle(
                       color: Color(0xFF2563EB),
-                      fontSize: 11,
+                      fontSize: 12,
                       fontWeight: FontWeight.w700,
                     ),
                   ),

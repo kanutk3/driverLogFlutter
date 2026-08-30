@@ -253,22 +253,15 @@ class _TripFormScreenState extends State<TripFormScreen> {
       ),
       bottomNavigationBar: SafeArea(
         minimum: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-        child: Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: _isSaving ? null : () => _saveTrip(isCompleted: false),
-                child: Text(widget.isEditing ? 'บันทึกการแก้ไข' : 'บันทึกร่าง'),
-              ),
+        child: SizedBox(
+          width: double.infinity,
+          child: FilledButton(
+            onPressed: _isSaving ? null : () => _saveTrip(isCompleted: true),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: FilledButton(
-                onPressed: _isSaving ? null : () => _saveTrip(isCompleted: true),
-                child: Text(_isSaving ? 'กำลังบันทึก...' : 'จบการเดินทาง'),
-              ),
-            ),
-          ],
+            child: Text(_isSaving ? 'กำลังบันทึก...' : 'บันทึก'),
+          ),
         ),
       ),
       body: SafeArea(
